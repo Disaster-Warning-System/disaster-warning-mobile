@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { HAZARD_TYPES, type HazardType } from '@/constants/hazardTypes';
-import { AppColors, Radius } from '@/constants/theme';
+import { AppColors, Radius, Typography } from '@/constants/theme';
 
 type HazardTypeSelectorProps = {
   value: HazardType | null;
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     margin: 5,
-    minHeight: 54,
+    minHeight: 48,
     paddingHorizontal: 12,
     width: '47%',
   },
@@ -93,9 +93,9 @@ const styles = StyleSheet.create({
     width: 8,
   },
   optionText: {
+    ...Typography.secondary,
     color: AppColors.text,
-    fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   selectedOptionText: {
     color: AppColors.primaryDark,

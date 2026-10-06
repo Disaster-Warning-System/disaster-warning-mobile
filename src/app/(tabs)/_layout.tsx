@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { Fonts } from '@/constants/theme';
 
-const ACTIVE_COLOR = '#0B6E69';
+const ACTIVE_COLOR = '#1877B9';
 const INACTIVE_COLOR = '#7A8992';
 
 export default function TabLayout() {
@@ -14,13 +15,14 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          fontFamily: Fonts.inter.semiBold,
         },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#DCE6EA',
-          height: 74,
+          height: 68,
           paddingBottom: 8,
-          paddingTop: 8,
+          paddingTop: 6,
         },
         tabBarItemStyle: { minHeight: 52 },
       }}>

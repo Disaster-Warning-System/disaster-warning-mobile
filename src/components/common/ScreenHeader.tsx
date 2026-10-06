@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppColors } from '@/constants/theme';
+import { AppColors, Fonts, Typography } from '@/constants/theme';
 
 type ScreenHeaderProps = {
   eyebrow?: string;
@@ -20,23 +20,21 @@ export default function ScreenHeader({ eyebrow, title, subtitle }: ScreenHeaderP
 
 const styles = StyleSheet.create({
   eyebrow: {
-    color: AppColors.primary,
-    fontSize: 12,
-    fontWeight: '800',
+    ...Typography.label,
+    fontFamily: Fonts.inter.semiBold,
+    color: AppColors.muted,
     letterSpacing: 1,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   title: {
+    ...Typography.title,
     color: AppColors.text,
-    fontSize: 30,
-    fontWeight: '800',
     letterSpacing: -0.4,
     lineHeight: 38,
   },
   subtitle: {
+    ...Typography.secondary,
     color: AppColors.muted,
-    fontSize: 16,
-    lineHeight: 24,
     marginTop: 8,
   },
 });

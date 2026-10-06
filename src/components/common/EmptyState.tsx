@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import Card from '@/components/common/Card';
-import { AppColors } from '@/constants/theme';
+import { AppColors, Typography } from '@/constants/theme';
 
 type EmptyStateProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -39,14 +39,12 @@ const styles = StyleSheet.create({
     width: 56,
   },
   title: {
+    ...Typography.sectionTitle,
     color: AppColors.text,
-    fontSize: 17,
-    fontWeight: '800',
   },
   description: {
+    ...Typography.secondary,
     color: AppColors.muted,
-    fontSize: 14,
-    lineHeight: 21,
     marginTop: 8,
     textAlign: 'center',
   },

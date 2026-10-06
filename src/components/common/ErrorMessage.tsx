@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { Typography } from '@/constants/theme';
 
 type ErrorMessageProps = {
   message: string;
@@ -21,8 +22,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   message: {
+    ...Typography.secondary,
     color: '#9B2520',
-    fontSize: 14,
-    lineHeight: 20,
   },
 });

@@ -32,31 +32,37 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 
 const styles = StyleSheet.create({
   small: {
+    fontFamily: Fonts.inter.regular,
     fontSize: 14,
     lineHeight: 20,
     fontWeight: 500,
   },
   smallBold: {
+    fontFamily: Fonts.inter.bold,
     fontSize: 14,
     lineHeight: 20,
     fontWeight: 700,
   },
   default: {
+    fontFamily: Fonts.inter.regular,
     fontSize: 16,
     lineHeight: 24,
     fontWeight: 500,
   },
   title: {
+    fontFamily: Fonts.inter.bold,
     fontSize: 48,
     fontWeight: 600,
     lineHeight: 52,
   },
   subtitle: {
+    fontFamily: Fonts.inter.semiBold,
     fontSize: 32,
     lineHeight: 44,
     fontWeight: 600,
   },
   link: {
+    fontFamily: Fonts.inter.semiBold,
     lineHeight: 30,
     fontSize: 14,
   },
