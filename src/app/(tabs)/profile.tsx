@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import Card from '@/components/common/Card';
 import ScreenHeader from '@/components/common/ScreenHeader';
-import { AppColors } from '@/constants/theme';
+import { AppColors, Typography } from '@/constants/theme';
 
 export default function ProfileScreen() {
   return (
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
     width: 56,
   },
   profileCopy: { flex: 1 },
-  profileTitle: { color: AppColors.text, fontSize: 16, fontWeight: '800' },
-  profileDescription: { color: AppColors.muted, fontSize: 14, lineHeight: 20, marginTop: 5 },
+  profileTitle: { ...Typography.sectionTitle, color: AppColors.text, fontSize: 18 },
+  profileDescription: { ...Typography.secondary, color: AppColors.muted, marginTop: 5 },
   preferenceCard: { alignItems: 'center', flexDirection: 'row', marginTop: 14 },
   preferenceIcon: {
     alignItems: 'center',

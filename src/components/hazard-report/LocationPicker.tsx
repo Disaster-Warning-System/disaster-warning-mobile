@@ -3,7 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import Button from '@/components/common/Button';
 import ErrorMessage from '@/components/common/ErrorMessage';
-import { AppColors, Radius } from '@/constants/theme';
+import { AppColors, Radius, Typography } from '@/constants/theme';
 import { getCurrentLocation, LocationServiceError } from '@/services/location/locationService';
 import type { HazardReportLocation } from '@/types/hazardReport';
 
@@ -118,25 +118,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: 'center',
     marginTop: 10,
-    minHeight: 52,
+    minHeight: 62,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   locationText: {
+    ...Typography.secondary,
     color: AppColors.muted,
-    fontSize: 14,
-    lineHeight: 21,
   },
   locationSuccess: {
+    ...Typography.secondary,
     color: AppColors.success,
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 21,
+    fontWeight: '600',
   },
   locationError: {
+    ...Typography.secondary,
     color: AppColors.danger,
-    fontSize: 14,
-    lineHeight: 20,
     marginTop: 8,
   },
   actions: {
@@ -155,12 +152,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   input: {
+    ...Typography.body,
     backgroundColor: AppColors.surface,
     borderColor: AppColors.border,
     borderRadius: Radius.small,
     borderWidth: 1,
     color: AppColors.text,
-    fontSize: 15,
     marginTop: 10,
     minHeight: 50,
     paddingHorizontal: 14,

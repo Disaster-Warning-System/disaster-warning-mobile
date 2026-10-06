@@ -9,20 +9,20 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#172B3A',
-    background: '#F5F8FA',
+    text: '#16283D',
+    background: '#F5F7FA',
     surface: '#FFFFFF',
-    primary: '#0B6E69',
-    primaryDark: '#07534F',
-    primarySoft: '#E2F2EF',
-    accent: '#E76F51',
-    border: '#DCE6EA',
-    muted: '#62727D',
-    success: '#167C5A',
-    danger: '#B93832',
-    backgroundElement: '#EEF3F5',
-    backgroundSelected: '#E2F2EF',
-    textSecondary: '#62727D',
+    primary: '#1877B9',
+    primaryDark: '#075B94',
+    primarySoft: '#E8F2FC',
+    accent: '#F26B3A',
+    border: '#DDE5EE',
+    muted: '#6B7C8F',
+    success: '#08A05C',
+    danger: '#C94A3D',
+    backgroundElement: '#EEF3F8',
+    backgroundSelected: '#E8F2FC',
+    textSecondary: '#6B7C8F',
   },
   dark: {
     text: '#ffffff',
@@ -44,7 +44,20 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-export const Fonts = Platform.select({
+export const Fonts = {
+  inter: {
+    regular: 'Inter_400Regular',
+    medium: 'Inter_500Medium',
+    semiBold: 'Inter_600SemiBold',
+    bold: 'Inter_700Bold',
+  },
+  sinhala: {
+    regular: 'NotoSansSinhala_400Regular',
+    medium: 'NotoSansSinhala_500Medium',
+    semiBold: 'NotoSansSinhala_600SemiBold',
+    bold: 'NotoSansSinhala_700Bold',
+  },
+  ...Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
@@ -62,12 +75,22 @@ export const Fonts = Platform.select({
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
+    sans: 'Inter_400Regular, NotoSansSinhala_400Regular, sans-serif',
     serif: 'var(--font-serif)',
     rounded: 'var(--font-rounded)',
     mono: 'var(--font-mono)',
   },
-});
+  }),
+} as const;
+
+export const Typography = {
+  title: { fontFamily: Fonts.inter.bold, fontSize: 26, fontWeight: '700' as const, lineHeight: 32, letterSpacing: -0.2 },
+  sectionTitle: { fontFamily: Fonts.inter.semiBold, fontSize: 18, fontWeight: '600' as const, lineHeight: 24 },
+  body: { fontFamily: Fonts.inter.regular, fontSize: 16, fontWeight: '400' as const, lineHeight: 24 },
+  secondary: { fontFamily: Fonts.inter.regular, fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
+  button: { fontFamily: Fonts.inter.semiBold, fontSize: 16, fontWeight: '600' as const, lineHeight: 20 },
+  label: { fontFamily: Fonts.inter.bold, fontSize: 13, fontWeight: '700' as const, lineHeight: 18 },
+} as const;
 
 export const Spacing = {
   half: 2,
@@ -86,14 +109,14 @@ export const AppColors = Colors.light;
 
 export const Radius = {
   small: 10,
-  medium: 16,
-  large: 22,
+  medium: 14,
+  large: 20,
   pill: 999,
 } as const;
 
 export const Shadows = {
   card: {
-    shadowColor: '#17323D',
+    shadowColor: '#16324D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.07,
     shadowRadius: 12,

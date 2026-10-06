@@ -1,7 +1,7 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import ErrorMessage from '@/components/common/ErrorMessage';
-import { AppColors, Radius } from '@/constants/theme';
+import { AppColors, Radius, Typography } from '@/constants/theme';
 
 type DescriptionInputProps = {
   value: string;
@@ -33,15 +33,14 @@ export default function DescriptionInput({
 
 const styles = StyleSheet.create({
   input: {
+    ...Typography.body,
     backgroundColor: AppColors.surface,
     borderColor: AppColors.border,
     borderRadius: Radius.small,
     borderWidth: 1,
     color: AppColors.text,
-    fontSize: 15,
-    lineHeight: 22,
     marginTop: 12,
-    minHeight: 132,
+    minHeight: 104,
     padding: 14,
   },
 });

@@ -8,7 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { AppColors, Radius } from '@/constants/theme';
+import { AppColors, Radius, Typography } from '@/constants/theme';
 
 type ButtonProps = {
   title: string;
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.primary,
     borderRadius: Radius.small,
     justifyContent: 'center',
-    minHeight: 56,
+    minHeight: 52,
     paddingHorizontal: 20,
   },
   disabled: {
@@ -66,8 +66,7 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   title: {
+    ...Typography.button,
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
   },
 });

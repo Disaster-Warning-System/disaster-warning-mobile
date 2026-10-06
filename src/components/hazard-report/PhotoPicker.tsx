@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 import Button from '@/components/common/Button';
 import ErrorMessage from '@/components/common/ErrorMessage';
-import { AppColors, Radius } from '@/constants/theme';
+import { AppColors, Radius, Typography } from '@/constants/theme';
 
 type PhotoPickerProps = {
   photoUri: string | null;
@@ -77,16 +77,16 @@ export default function PhotoPicker({ photoUri, onPhotoChange }: PhotoPickerProp
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: AppColors.surface,
+    backgroundColor: '#F9FBFE',
     borderColor: AppColors.border,
     borderRadius: Radius.small,
     borderWidth: 1,
     marginTop: 10,
-    padding: 14,
+    padding: 12,
   },
   photoStatus: {
+    ...Typography.secondary,
     color: AppColors.muted,
-    fontSize: 14,
   },
   preview: {
     borderRadius: 8,

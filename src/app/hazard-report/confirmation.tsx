@@ -6,7 +6,7 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import ErrorMessage from '@/components/common/ErrorMessage';
-import { AppColors, Radius } from '@/constants/theme';
+import { AppColors, Radius, Typography } from '@/constants/theme';
 import { useHazardReport } from '@/hooks/useHazardReport';
 
 export default function HazardReportConfirmationScreen() {
@@ -47,8 +47,11 @@ export default function HazardReportConfirmationScreen() {
         ) : (
           <>
             <View style={styles.header}>
-              <Text style={styles.title}>Review Report</Text>
-              <Text style={styles.description}>Check the information before submitting your report.</Text>
+              <View style={styles.headerRow}>
+                <Ionicons name="arrow-back" size={21} color={AppColors.text} onPress={() => router.back()} />
+                <View style={styles.headerCopy}><Text style={styles.title}>Review Report</Text><Text style={styles.description}>Check your details before submitting</Text></View>
+              </View>
+              <View style={styles.progressHeader}><Text style={styles.stepLabel}>Step 3 of 3</Text><Text style={styles.progressPercent}>100%</Text><View style={styles.progressTrack}><View style={styles.progressFill} /></View></View>
             </View>
             <Card style={styles.reviewCard}>
               <SummaryRow icon="warning-outline" label="Hazard type" value={form.hazardType ?? 'Not selected'} />
@@ -85,7 +88,7 @@ export default function HazardReportConfirmationScreen() {
             </Card>
             {submitError ? <ErrorMessage message={submitError} /> : null}
             <Button
-              title={isSubmitting ? 'Submitting report...' : 'Submit Report'}
+              title={isSubmitting ? 'Submitting report...' : 'Submit Report  →'}
               onPress={() => void submitReport()}
               disabled={isSubmitting}
               loading={isSubmitting}
@@ -127,16 +130,23 @@ function SummaryRow({
 
 const styles = StyleSheet.create({
   safeArea: { backgroundColor: AppColors.background, flex: 1 },
-  content: { flexGrow: 1, padding: 24, paddingBottom: 36, paddingTop: 28 },
-  header: { marginBottom: 24 },
-  title: { color: AppColors.text, fontSize: 30, fontWeight: '800', lineHeight: 38 },
-  description: { color: AppColors.muted, fontSize: 16, lineHeight: 24, marginTop: 8 },
+  content: { flexGrow: 1, padding: 20, paddingBottom: 36, paddingTop: 20 },
+  header: { marginBottom: 20 },
+  headerRow: { alignItems: 'center', flexDirection: 'row' },
+  headerCopy: { marginLeft: 12 },
+  title: { ...Typography.sectionTitle, color: AppColors.text },
+  description: { ...Typography.secondary, color: AppColors.muted, fontSize: 13, marginTop: 3 },
+  progressHeader: { marginTop: 24 },
+  stepLabel: { ...Typography.label, color: AppColors.text, fontSize: 12 },
+  progressPercent: { ...Typography.secondary, color: AppColors.muted, fontSize: 13, position: 'absolute', right: 0, top: 0 },
+  progressTrack: { backgroundColor: AppColors.border, borderRadius: 4, height: 4, marginTop: 9 },
+  progressFill: { backgroundColor: AppColors.primary, borderRadius: 4, height: 4, width: '100%' },
   reviewCard: { padding: 20 },
   summaryRow: { borderBottomColor: AppColors.border, borderBottomWidth: 1, paddingBottom: 16, paddingTop: 2 },
   rowLabel: { alignItems: 'center', flexDirection: 'row', gap: 8 },
-  label: { color: AppColors.muted, fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
-  value: { color: AppColors.text, fontSize: 15, lineHeight: 22, marginTop: 8 },
-  mutedValue: { color: AppColors.muted, fontSize: 14, marginTop: 8 },
+  label: { ...Typography.label, color: AppColors.muted, textTransform: 'none' },
+  value: { ...Typography.body, color: AppColors.text, marginTop: 8 },
+  mutedValue: { ...Typography.secondary, color: AppColors.muted, marginTop: 8 },
   photoSection: { paddingTop: 16 },
   photo: { borderRadius: Radius.small, height: 190, marginTop: 10, width: '100%' },
   primaryButton: { marginTop: 20, width: '100%' },
@@ -144,9 +154,9 @@ const styles = StyleSheet.create({
   secondaryButtonText: { color: AppColors.text },
   successCard: { alignItems: 'center', marginTop: 36, paddingHorizontal: 22, paddingVertical: 30 },
   successIcon: { alignItems: 'center', backgroundColor: '#E5F4ED', borderRadius: 38, height: 76, justifyContent: 'center', width: 76 },
-  successTitle: { color: AppColors.text, fontSize: 25, fontWeight: '800', marginTop: 18 },
-  successDescription: { color: AppColors.muted, fontSize: 15, lineHeight: 23, marginTop: 10, textAlign: 'center' },
+  successTitle: { ...Typography.title, color: AppColors.text, marginTop: 18 },
+  successDescription: { ...Typography.body, color: AppColors.muted, marginTop: 10, textAlign: 'center' },
   statusBadge: { alignItems: 'center', backgroundColor: AppColors.primarySoft, borderRadius: Radius.small, marginTop: 20, paddingHorizontal: 20, paddingVertical: 12, width: '100%' },
-  statusLabel: { color: AppColors.primaryDark, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
-  statusValue: { color: AppColors.primaryDark, fontSize: 15, fontWeight: '800', marginTop: 4 },
+  statusLabel: { ...Typography.label, color: AppColors.primaryDark, fontSize: 12, letterSpacing: 0.4 },
+  statusValue: { ...Typography.label, color: AppColors.primaryDark, fontSize: 13, marginTop: 4 },
 });
