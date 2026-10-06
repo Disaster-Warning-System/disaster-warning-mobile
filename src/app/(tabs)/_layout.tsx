@@ -33,10 +33,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="report"
         options={{
-          title: 'Report',
+          title: 'Report Hazard',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? 'alert-circle' : 'alert-circle-outline'}
+              name={focused ? 'warning' : 'warning-outline'}
               size={size}
               color={color}
             />
@@ -62,7 +62,7 @@ export default function TabLayout() {
           title: 'Profile',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? 'person-circle' : 'person-circle-outline'}
+              name={focused ? 'person' : 'person-outline'}
               size={size}
               color={color}
             />

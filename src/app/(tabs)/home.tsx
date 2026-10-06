@@ -1,8 +1,12 @@
-import { Link } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Button from '@/components/common/Button';
+
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -11,25 +15,20 @@ export default function HomeScreen() {
         <Text style={styles.welcome}>Stay informed. Stay safe.</Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Current disaster warnings</Text>
+          <Text style={styles.sectionTitle}>Current Warnings</Text>
           <View style={styles.warningCard}>
             <View style={styles.statusDot} />
             <View style={styles.warningCopy}>
               <Text style={styles.warningTitle}>No active warnings</Text>
-              <Text style={styles.warningDescription}>
-                There are no current warnings for your area.
-              </Text>
             </View>
           </View>
         </View>
 
-        <Link href="/(tabs)/report" asChild>
-          <Pressable
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.reportButton, pressed && styles.buttonPressed]}>
-            <Text style={styles.reportButtonText}>Report a Hazard</Text>
-          </Pressable>
-        </Link>
+        <Button
+          title="Report a Hazard"
+          onPress={() => router.navigate('/(tabs)/report')}
+          style={styles.reportButton}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -102,27 +101,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  warningDescription: {
-    color: '#66756F',
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 5,
-  },
   reportButton: {
-    alignItems: 'center',
-    backgroundColor: '#176B5B',
-    borderRadius: 12,
-    justifyContent: 'center',
     marginTop: 32,
-    minHeight: 54,
-    paddingHorizontal: 20,
-  },
-  buttonPressed: {
-    opacity: 0.82,
-  },
-  reportButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
   },
 });
