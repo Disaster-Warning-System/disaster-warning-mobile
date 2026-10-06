@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Button from '@/components/common/Button';
+import ScreenHeader from '@/components/common/ScreenHeader';
 import DescriptionInput from '@/components/hazard-report/DescriptionInput';
 import HazardTypeSelector from '@/components/hazard-report/HazardTypeSelector';
 import LocationPicker from '@/components/hazard-report/LocationPicker';
@@ -51,13 +52,13 @@ export default function ReportScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Report a Hazard</Text>
-        <Text style={styles.description}>
-          Provide information about the hazard you observed.
-        </Text>
+        <ScreenHeader
+          title="Report a Hazard"
+          subtitle="Help authorities respond quickly by reporting hazards in your area."
+        />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Hazard Type</Text>
+          <Text style={styles.sectionTitle}>What happened?</Text>
           <HazardTypeSelector
             value={form.hazardType}
             onChange={setHazardType}
@@ -84,12 +85,12 @@ export default function ReportScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Photo (Optional)</Text>
+          <Text style={styles.sectionTitle}>Photo evidence <Text style={styles.optional}>(optional)</Text></Text>
           <PhotoPicker photoUri={form.photoUri} onPhotoChange={setPhotoUri} />
         </View>
 
         <View style={styles.actions}>
-          <Button title="Review Report" onPress={handleReview} style={styles.submitButton} />
+          <Button title="Continue to Review" onPress={handleReview} style={styles.submitButton} />
           <Button
             title="Cancel"
             onPress={handleCancel}
@@ -104,7 +105,7 @@ export default function ReportScreen() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#F5F8F7',
+    backgroundColor: '#F5F8FA',
     flex: 1,
   },
   content: {
@@ -112,25 +113,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 28,
   },
-  title: {
-    color: '#17332D',
-    fontSize: 30,
-    fontWeight: '700',
-    lineHeight: 38,
-  },
-  description: {
-    color: '#52645F',
-    fontSize: 16,
-    lineHeight: 24,
-    marginTop: 8,
-  },
   section: {
-    marginTop: 24,
+    marginTop: 28,
   },
   sectionTitle: {
-    color: '#263D37',
+    color: '#172B3A',
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  optional: {
+    color: '#62727D',
+    fontSize: 13,
+    fontWeight: '500',
   },
   actions: {
     marginTop: 28,

@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-const ACTIVE_COLOR = '#176B5B';
-const INACTIVE_COLOR = '#78858C';
+const ACTIVE_COLOR = '#0B6E69';
+const INACTIVE_COLOR = '#7A8992';
 
 export default function TabLayout() {
   return (
@@ -17,9 +17,12 @@ export default function TabLayout() {
         },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
-          borderTopColor: '#E6ECEA',
+          borderTopColor: '#DCE6EA',
+          height: 74,
+          paddingBottom: 8,
           paddingTop: 8,
         },
+        tabBarItemStyle: { minHeight: 52 },
       }}>
       <Tabs.Screen
         name="home"
@@ -33,7 +36,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="report"
         options={{
-          title: 'Report Hazard',
+          title: 'Report',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'warning' : 'warning-outline'}

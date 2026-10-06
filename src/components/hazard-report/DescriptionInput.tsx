@@ -1,6 +1,7 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import ErrorMessage from '@/components/common/ErrorMessage';
+import { AppColors, Radius } from '@/constants/theme';
 
 type DescriptionInputProps = {
   value: string;
@@ -19,7 +20,7 @@ export default function DescriptionInput({
         accessibilityLabel="Hazard description"
         multiline
         onChangeText={onChangeText}
-        placeholder="Describe what you observed..."
+        placeholder="Describe what you observed, including the exact area..."
         placeholderTextColor="#87958F"
         textAlignVertical="top"
         value={value}
@@ -32,15 +33,15 @@ export default function DescriptionInput({
 
 const styles = StyleSheet.create({
   input: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DCE6E2',
-    borderRadius: 10,
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
-    color: '#203B33',
+    color: AppColors.text,
     fontSize: 15,
     lineHeight: 22,
-    marginTop: 10,
-    minHeight: 120,
+    marginTop: 12,
+    minHeight: 132,
     padding: 14,
   },
 });

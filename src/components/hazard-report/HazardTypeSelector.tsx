@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { HAZARD_TYPES, type HazardType } from '@/constants/hazardTypes';
+import { AppColors, Radius } from '@/constants/theme';
 
 type HazardTypeSelectorProps = {
   value: HazardType | null;
@@ -51,30 +52,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -5,
-    marginTop: 10,
+    marginTop: 12,
   },
   option: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DCE6E2',
-    borderRadius: 10,
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
     flexDirection: 'row',
     margin: 5,
-    minHeight: 48,
+    minHeight: 54,
     paddingHorizontal: 12,
     width: '47%',
   },
   selectedOption: {
-    backgroundColor: '#E8F3EF',
-    borderColor: '#176B5B',
+    backgroundColor: AppColors.primarySoft,
+    borderColor: AppColors.primary,
   },
   pressed: {
     opacity: 0.8,
   },
   radio: {
     alignItems: 'center',
-    borderColor: '#899A94',
+    borderColor: '#93A2AA',
     borderRadius: 9,
     borderWidth: 1.5,
     height: 18,
@@ -83,20 +84,20 @@ const styles = StyleSheet.create({
     width: 18,
   },
   selectedRadio: {
-    borderColor: '#176B5B',
+    borderColor: AppColors.primary,
   },
   radioDot: {
-    backgroundColor: '#176B5B',
+    backgroundColor: AppColors.primary,
     borderRadius: 4,
     height: 8,
     width: 8,
   },
   optionText: {
-    color: '#334941',
+    color: AppColors.text,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   selectedOptionText: {
-    color: '#145B4E',
+    color: AppColors.primaryDark,
   },
 });

@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import Button from '@/components/common/Button';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import { AppColors, Radius } from '@/constants/theme';
 import { getCurrentLocation, LocationServiceError } from '@/services/location/locationService';
 import type { HazardReportLocation } from '@/types/hazardReport';
 
@@ -54,13 +55,13 @@ export default function LocationPicker({
       <View style={styles.locationCard}>
         {hasCoordinates ? (
           <>
-            <Text style={styles.locationSuccess}>Current location captured.</Text>
+            <Text style={styles.locationSuccess}>Location captured</Text>
             <Text style={styles.locationText}>Latitude: {location.latitude?.toFixed(6)}</Text>
             <Text style={styles.locationText}>Longitude: {location.longitude?.toFixed(6)}</Text>
           </>
         ) : (
           <Text style={styles.locationText}>
-            {hasLocation ? location.address : 'Location not selected'}
+            {hasLocation ? location.address : 'Location unavailable'}
           </Text>
         )}
       </View>
@@ -88,7 +89,7 @@ export default function LocationPicker({
           title="Enter Location Manually"
           onPress={handleManualLocation}
           disabled={isLoading}
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.secondaryActionButton]}
           textStyle={styles.secondaryActionText}
         />
       </View>
@@ -111,9 +112,9 @@ export default function LocationPicker({
 
 const styles = StyleSheet.create({
   locationCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DCE6E2',
-    borderRadius: 10,
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
     justifyContent: 'center',
     marginTop: 10,
@@ -122,18 +123,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   locationText: {
-    color: '#65756F',
+    color: AppColors.muted,
     fontSize: 14,
     lineHeight: 21,
   },
   locationSuccess: {
-    color: '#176B5B',
+    color: AppColors.success,
     fontSize: 14,
     fontWeight: '700',
     lineHeight: 21,
   },
   locationError: {
-    color: '#9B2520',
+    color: AppColors.danger,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 8,
@@ -146,14 +147,19 @@ const styles = StyleSheet.create({
     minHeight: 46,
   },
   secondaryActionText: {
-    color: '#334941',
+    color: AppColors.text,
+  },
+  secondaryActionButton: {
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderWidth: 1,
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DCE6E2',
-    borderRadius: 10,
+    backgroundColor: AppColors.surface,
+    borderColor: AppColors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
-    color: '#203B33',
+    color: AppColors.text,
     fontSize: 15,
     marginTop: 10,
     minHeight: 50,

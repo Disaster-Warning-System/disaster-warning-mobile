@@ -25,7 +25,7 @@ In the output, you'll find options to open the app in a
 
 ## Hazard reports
 
-Set `EXPO_PUBLIC_API_URL` to the backend origin (without the `/api/hazard-reports` path) before starting the app. For example, use your backend host and port in a local development environment. Do not put credentials or secrets in this public Expo variable.
+Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the backend origin (without the `/api/hazard-reports` path) before starting the app. For local web development or an Android emulator, `http://localhost:5000` is usually correct. For Expo Go on a physical device, replace `localhost` with the computer's LAN IP address, for example `http://192.168.1.10:5000`, and make sure the device and computer are on the same network. Do not put credentials or secrets in this public Expo variable.
 
 Hazard reports waiting for connectivity on Android and iOS are stored in a SQLCipher-encrypted SQLite database. The encryption key is held in SecureStore. SQLCipher is not supported in Expo Go, so use an Expo development build after applying the configured native plugins. The encrypted pending-report queue is mobile-only.
 

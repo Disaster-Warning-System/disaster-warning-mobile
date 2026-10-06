@@ -11,6 +11,7 @@ import * as Crypto from 'expo-crypto';
 import * as Network from 'expo-network';
 
 import type { HazardType } from '@/constants/hazardTypes';
+import { ApiRequestError } from '@/services/api/apiClient';
 import { createHazardReport } from '@/services/api/hazardReportApi';
 import { savePendingReport } from '@/services/storage/offlineStorage';
 import type {
@@ -162,7 +163,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
         const result: SubmissionResult = { kind: 'submitted', report };
         setSubmitSuccess(result);
         return result;
-      } catch {
+      } catch (error) {
         const currentNetwork = await Network.getNetworkStateAsync().catch((networkError: unknown) => {
           console.error('Could not check network after report submission failed.', networkError);
           return null;
@@ -175,7 +176,11 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
           return await saveForSync(localId);
         }
 
-        setSubmitError('Unable to submit your report. Please try again.');
+        setSubmitError(
+          error instanceof ApiRequestError
+            ? error.message
+            : 'Unable to submit your report. Please try again.',
+        );
         return null;
       }
     } catch (error) {

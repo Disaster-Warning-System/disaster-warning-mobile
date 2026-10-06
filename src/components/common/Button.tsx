@@ -8,6 +8,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 
+import { AppColors, Radius } from '@/constants/theme';
+
 type ButtonProps = {
   title: string;
   onPress: () => void;
@@ -51,10 +53,10 @@ export default function Button({
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: '#176B5B',
-    borderRadius: 12,
+    backgroundColor: AppColors.primary,
+    borderRadius: Radius.small,
     justifyContent: 'center',
-    minHeight: 54,
+    minHeight: 56,
     paddingHorizontal: 20,
   },
   disabled: {
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });
