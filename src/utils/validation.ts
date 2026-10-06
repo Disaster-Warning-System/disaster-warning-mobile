@@ -16,7 +16,15 @@ export function validateHazardReport(
     errors.description = 'Please enter a description.';
   }
 
-  const hasCoordinates = location.latitude !== null && location.longitude !== null;
+  const hasCoordinates =
+    typeof location.latitude === 'number' &&
+    Number.isFinite(location.latitude) &&
+    location.latitude >= -90 &&
+    location.latitude <= 90 &&
+    typeof location.longitude === 'number' &&
+    Number.isFinite(location.longitude) &&
+    location.longitude >= -180 &&
+    location.longitude <= 180;
   if (!hasCoordinates && !location.address.trim()) {
     errors.location = 'Please provide a location.';
   }

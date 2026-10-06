@@ -1,42 +1,110 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import Button from '@/components/common/Button';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import { getCurrentLocation, LocationServiceError } from '@/services/location/locationService';
 import type { HazardReportLocation } from '@/types/hazardReport';
 
 type LocationPickerProps = {
   location: HazardReportLocation;
+  onLocationChange: (location: HazardReportLocation) => void;
   error?: string;
 };
 
-export default function LocationPicker({ location, error }: LocationPickerProps) {
-  const hasLocation =
-    (location.latitude !== null && location.longitude !== null) || Boolean(location.address.trim());
+export default function LocationPicker({
+  location,
+  onLocationChange,
+  error,
+}: LocationPickerProps) {
+  const [manualMode, setManualMode] = useState(Boolean(location.address));
+  const [isLoading, setIsLoading] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
+  const hasCoordinates = location.latitude !== null && location.longitude !== null;
+  const hasLocation = hasCoordinates || Boolean(location.address.trim());
+
+  const handleGetCurrentLocation = async () => {
+    setIsLoading(true);
+    setLocationMessage('');
+    setManualMode(false);
+    try {
+      const current = await getCurrentLocation();
+      onLocationChange(current);
+      setLocationMessage('');
+    } catch (error) {
+      setManualMode(true);
+      const message =
+        error instanceof LocationServiceError && error.code === 'permission-denied'
+          ? 'Location permission was denied. You can enter your location manually.'
+          : 'Unable to get your current location. You can enter your location manually.';
+      setLocationMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleManualLocation = () => {
+    setManualMode(true);
+    setLocationMessage('');
+    onLocationChange({ latitude: null, longitude: null, address: location.address });
+  };
 
   return (
     <View>
       <View style={styles.locationCard}>
-        <Text style={styles.locationText}>
-          {hasLocation ? location.address || 'Coordinates selected' : 'Location not selected'}
-        </Text>
+        {hasCoordinates ? (
+          <>
+            <Text style={styles.locationSuccess}>Current location captured.</Text>
+            <Text style={styles.locationText}>Latitude: {location.latitude?.toFixed(6)}</Text>
+            <Text style={styles.locationText}>Longitude: {location.longitude?.toFixed(6)}</Text>
+          </>
+        ) : (
+          <Text style={styles.locationText}>
+            {hasLocation ? location.address : 'Location not selected'}
+          </Text>
+        )}
       </View>
       {error ? <ErrorMessage message={error} /> : null}
+      {locationMessage ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={
+            locationMessage.startsWith('Current location')
+              ? styles.locationSuccess
+              : styles.locationError
+          }>
+          {locationMessage}
+        </Text>
+      ) : null}
       <View style={styles.actions}>
         <Button
           title="Use Current Location"
-          onPress={() => {}}
-          disabled
+          onPress={handleGetCurrentLocation}
+          loading={isLoading}
+          disabled={isLoading}
           style={styles.actionButton}
-          textStyle={styles.actionText}
         />
         <Button
           title="Enter Location Manually"
-          onPress={() => {}}
-          disabled
+          onPress={handleManualLocation}
+          disabled={isLoading}
           style={styles.actionButton}
-          textStyle={styles.actionText}
+          textStyle={styles.secondaryActionText}
         />
       </View>
+      {manualMode ? (
+        <TextInput
+          accessibilityLabel="Manual location"
+          onChangeText={(address) => {
+            setLocationMessage('');
+            onLocationChange({ latitude: null, longitude: null, address });
+          }}
+          placeholder="Enter your location"
+          placeholderTextColor="#87958F"
+          value={location.address}
+          style={styles.input}
+        />
+      ) : null}
     </View>
   );
 }
@@ -51,21 +119,44 @@ const styles = StyleSheet.create({
     marginTop: 10,
     minHeight: 52,
     paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   locationText: {
     color: '#65756F',
     fontSize: 14,
+    lineHeight: 21,
+  },
+  locationSuccess: {
+    color: '#176B5B',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 21,
+  },
+  locationError: {
+    color: '#9B2520',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
   },
   actions: {
     marginTop: 8,
   },
   actionButton: {
-    backgroundColor: '#E8EEEB',
     marginTop: 8,
     minHeight: 46,
   },
-  actionText: {
-    color: '#52645F',
-    fontSize: 14,
+  secondaryActionText: {
+    color: '#334941',
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DCE6E2',
+    borderRadius: 10,
+    borderWidth: 1,
+    color: '#203B33',
+    fontSize: 15,
+    marginTop: 10,
+    minHeight: 50,
+    paddingHorizontal: 14,
   },
 });

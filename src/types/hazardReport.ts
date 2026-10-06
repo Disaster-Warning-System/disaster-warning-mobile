@@ -10,7 +10,7 @@ export type HazardReportForm = {
   hazardType: HazardType | null;
   description: string;
   location: HazardReportLocation;
-  photo: string | null;
+  photoUri: string | null;
 };
 
 export type HazardReportErrors = {
@@ -18,3 +18,33 @@ export type HazardReportErrors = {
   description?: string;
   location?: string;
 };
+
+export type ReportStatus =
+  | 'Pending Verification'
+  | 'Verified'
+  | 'Rejected'
+  | 'Needs More Information';
+
+export type CreateHazardReportRequest = {
+  hazardType: HazardType;
+  description: string;
+  location: HazardReportLocation;
+  photoUrl: string | null;
+};
+
+export type HazardReport = CreateHazardReportRequest & {
+  id: string | null;
+  status: ReportStatus;
+};
+
+export type LocalPendingHazardReport = Omit<HazardReportForm, 'hazardType'> & {
+  hazardType: HazardType;
+  localId: string;
+  photoUrl: null;
+  localStatus: 'Pending Sync';
+  createdAt: string;
+};
+
+export type SubmissionResult =
+  | { kind: 'submitted'; report: HazardReport }
+  | { kind: 'pending-sync'; localId: string };

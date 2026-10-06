@@ -23,6 +23,12 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
+## Hazard reports
+
+Set `EXPO_PUBLIC_API_URL` to the backend origin (without the `/api/hazard-reports` path) before starting the app. For example, use your backend host and port in a local development environment. Do not put credentials or secrets in this public Expo variable.
+
+Hazard reports waiting for connectivity on Android and iOS are stored in a SQLCipher-encrypted SQLite database. The encryption key is held in SecureStore. SQLCipher is not supported in Expo Go, so use an Expo development build after applying the configured native plugins. The encrypted pending-report queue is mobile-only.
+
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
 ## Get a fresh project

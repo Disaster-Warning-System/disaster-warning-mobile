@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,59 +7,25 @@ import DescriptionInput from '@/components/hazard-report/DescriptionInput';
 import HazardTypeSelector from '@/components/hazard-report/HazardTypeSelector';
 import LocationPicker from '@/components/hazard-report/LocationPicker';
 import PhotoPicker from '@/components/hazard-report/PhotoPicker';
-import type { HazardType } from '@/constants/hazardTypes';
-import type {
-  HazardReportErrors,
-  HazardReportForm,
-  HazardReportLocation,
-} from '@/types/hazardReport';
-import { validateHazardReport } from '@/utils/validation';
-
-const EMPTY_LOCATION: HazardReportLocation = {
-  latitude: null,
-  longitude: null,
-  address: '',
-};
-
-const EMPTY_FORM: HazardReportForm = {
-  hazardType: null,
-  description: '',
-  location: EMPTY_LOCATION,
-  photo: null,
-};
+import { useHazardReport } from '@/hooks/useHazardReport';
 
 export default function ReportScreen() {
   const router = useRouter();
-  const [hazardType, setHazardType] = useState<HazardType | null>(EMPTY_FORM.hazardType);
-  const [description, setDescription] = useState(EMPTY_FORM.description);
-  const [location, setLocation] = useState<HazardReportLocation>(EMPTY_LOCATION);
-  const [photo, setPhoto] = useState<string | null>(EMPTY_FORM.photo);
-  const [errors, setErrors] = useState<HazardReportErrors>({});
-  const [confirmation, setConfirmation] = useState('');
+  const {
+    form,
+    validationErrors,
+    setHazardType,
+    setDescription,
+    setLocation,
+    setPhotoUri,
+    validateReport,
+    resetReport,
+  } = useHazardReport();
 
-  const clearFieldError = (field: keyof HazardReportErrors) => {
-    setErrors((current) => ({ ...current, [field]: undefined }));
-    setConfirmation('');
-  };
-
-  const handleSubmit = () => {
-    const validationErrors = validateHazardReport(hazardType, description, location);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length === 0) {
-      setConfirmation('Form is valid. Ready to submit.');
-    } else {
-      setConfirmation('');
+  const handleReview = () => {
+    if (validateReport()) {
+      router.push('/hazard-report/confirmation');
     }
-  };
-
-  const clearForm = () => {
-    setHazardType(EMPTY_FORM.hazardType);
-    setDescription(EMPTY_FORM.description);
-    setLocation({ ...EMPTY_LOCATION });
-    setPhoto(EMPTY_FORM.photo);
-    setErrors({});
-    setConfirmation('');
   };
 
   const handleCancel = () => {
@@ -73,7 +38,7 @@ export default function ReportScreen() {
           text: 'Discard',
           style: 'destructive',
           onPress: () => {
-            clearForm();
+            resetReport();
             router.navigate('/(tabs)/home');
           },
         },
@@ -94,40 +59,37 @@ export default function ReportScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hazard Type</Text>
           <HazardTypeSelector
-            value={hazardType}
-            onChange={(value) => {
-              setHazardType(value);
-              clearFieldError('hazardType');
-            }}
-            error={errors.hazardType}
+            value={form.hazardType}
+            onChange={setHazardType}
+            error={validationErrors.hazardType}
           />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description</Text>
           <DescriptionInput
-            value={description}
-            onChangeText={(value) => {
-              setDescription(value);
-              clearFieldError('description');
-            }}
-            error={errors.description}
+            value={form.description}
+            onChangeText={setDescription}
+            error={validationErrors.description}
           />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Location</Text>
-          <LocationPicker location={location} error={errors.location} />
+          <LocationPicker
+            location={form.location}
+            onLocationChange={setLocation}
+            error={validationErrors.location}
+          />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Photo (Optional)</Text>
-          <PhotoPicker photo={photo} />
+          <PhotoPicker photoUri={form.photoUri} onPhotoChange={setPhotoUri} />
         </View>
 
         <View style={styles.actions}>
-          {confirmation ? <Text style={styles.confirmation}>{confirmation}</Text> : null}
-          <Button title="Submit Report" onPress={handleSubmit} style={styles.submitButton} />
+          <Button title="Review Report" onPress={handleReview} style={styles.submitButton} />
           <Button
             title="Cancel"
             onPress={handleCancel}
@@ -172,13 +134,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: 28,
-  },
-  confirmation: {
-    color: '#176B5B',
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 12,
-    textAlign: 'center',
   },
   submitButton: {
     width: '100%',
