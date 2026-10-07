@@ -1,1 +1,1 @@
-export * from "./shelterUpdateStorage.native";
+export * from './shelterUpdateStorage.native';
