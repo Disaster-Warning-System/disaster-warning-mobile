@@ -53,6 +53,9 @@ export type HazardReport = CreateHazardReportRequest & {
   id: string | null;
   reportId: string;
   status: ReportStatus;
+  createdAt?: string;
+  updatedAt?: string;
+  photoFileId?: string | null;
 };
 
 export type LocalPendingHazardReport = Omit<HazardReportForm, 'hazardType'> & {

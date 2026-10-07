@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
@@ -11,9 +11,11 @@ import LocationPicker from '@/components/hazard-report/LocationPicker';
 import PhotoPicker from '@/components/hazard-report/PhotoPicker';
 import { useHazardReport } from '@/hooks/useHazardReport';
 import { AppColors, Typography } from '@/constants/theme';
+import ReportHistory from '@/components/reports/ReportHistory';
 
 export default function ReportScreen() {
   const router = useRouter();
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
   const {
     form,
     validationErrors,
@@ -26,6 +28,18 @@ export default function ReportScreen() {
     resetReport,
   } = useHazardReport();
   const [isCancelDialogVisible, setCancelDialogVisible] = useState(false);
+  const [showForm, setShowForm] = useState(mode === 'form');
+
+  if (!showForm) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ReportHistory onSubmitNew={() => {
+          setShowForm(true);
+          router.setParams({ mode: 'form' });
+        }} />
+      </SafeAreaView>
+    );
+  }
 
   const handleReview = () => {
     if (validateReport()) {
@@ -44,6 +58,8 @@ export default function ReportScreen() {
   const discardReport = () => {
     setCancelDialogVisible(false);
     resetReport();
+    setShowForm(false);
+    router.setParams({ mode: undefined });
     router.navigate('/(tabs)/home');
   };
 
