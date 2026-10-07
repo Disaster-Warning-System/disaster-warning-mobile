@@ -1,5 +1,5 @@
 import { HAZARD_TYPES } from '@/constants/hazardTypes';
-import type { LocalPendingHazardReport } from '@/types/hazardReport';
+import type { LocalPendingHazardReport, ReportSyncStatus } from '@/types/hazardReport';
 
 const STORAGE_KEY = 'disaster-warning-pending-hazard-reports';
 const HAZARD_TYPE_SET: ReadonlySet<string> = new Set(HAZARD_TYPES);
@@ -11,6 +11,7 @@ function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazard
 
   const report = value as Partial<LocalPendingHazardReport>;
   const location = report.location;
+  const localStatus = report.localStatus as string;
   if (!location || typeof location !== 'object') {
     return false;
   }
@@ -21,12 +22,30 @@ function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazard
     HAZARD_TYPE_SET.has(report.hazardType) &&
     typeof report.description === 'string' &&
     (typeof report.photoUri === 'string' || report.photoUri === null) &&
-    report.localStatus === 'Pending Sync' &&
+    (localStatus === 'Pending Synchronization' ||
+      localStatus === 'Syncing' ||
+      localStatus === 'Synced' ||
+      localStatus === 'Sync Failed' ||
+      localStatus === 'Pending Sync') &&
     typeof report.createdAt === 'string' &&
     (typeof location.latitude === 'number' || location.latitude === null) &&
     (typeof location.longitude === 'number' || location.longitude === null) &&
-    typeof location.address === 'string'
+    typeof location.address === 'string' &&
+    (typeof report.syncStatus === 'string' || localStatus === 'Pending Sync') &&
+    (typeof report.idempotencyKey === 'string' || localStatus === 'Pending Sync')
   );
+}
+
+function migrateReport(report: LocalPendingHazardReport): LocalPendingHazardReport {
+  const legacyStatus = report.localStatus as string;
+  const syncStatus: ReportSyncStatus =
+    legacyStatus === 'Pending Sync' ? 'Pending Synchronization' : report.syncStatus;
+  return {
+    ...report,
+    localStatus: syncStatus,
+    syncStatus,
+    idempotencyKey: report.idempotencyKey || report.localId,
+  };
 }
 
 function readReports(): LocalPendingHazardReport[] {
@@ -43,7 +62,7 @@ function readReports(): LocalPendingHazardReport[] {
   if (!Array.isArray(parsed) || !parsed.every(isLocalPendingHazardReport)) {
     throw new Error('Saved pending reports have an invalid format.');
   }
-  return parsed;
+  return parsed.map(migrateReport);
 }
 
 function writeReports(reports: LocalPendingHazardReport[]): void {
@@ -66,4 +85,15 @@ export async function getPendingReports(): Promise<LocalPendingHazardReport[]> {
 
 export async function removePendingReport(localId: string): Promise<void> {
   writeReports(readReports().filter((report) => report.localId !== localId));
+}
+
+export async function updatePendingReport(
+  localId: string,
+  update: Pick<LocalPendingHazardReport, 'localStatus' | 'syncStatus'>,
+): Promise<void> {
+  writeReports(
+    readReports().map((report) =>
+      report.localId === localId ? { ...report, ...update } : report,
+    ),
+  );
 }

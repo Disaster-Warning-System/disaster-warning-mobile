@@ -6,23 +6,26 @@ import { syncPendingReports } from '@/services/sync/reportSyncService';
 
 export function ReportSyncManager() {
   const { isConnected } = useNetworkStatus();
-  const { markReportSynced } = useHazardReport();
+  const { markReportSyncing, markReportSynced, markReportSyncFailed } = useHazardReport();
 
   useEffect(() => {
     if (Platform.OS === 'web' || !isConnected) {
       return;
     }
 
-    syncPendingReports()
-      .then(({ syncedReports }) => {
+    syncPendingReports({ onStatusChange: markReportSyncing })
+      .then(({ syncedReports, failedReports }) => {
         for (const { localId, report } of syncedReports) {
           markReportSynced(localId, report);
+        }
+        for (const localId of failedReports) {
+          markReportSyncFailed(localId);
         }
       })
       .catch((error: unknown) => {
         console.error('Automatic hazard report sync could not be completed.', error);
       });
-  }, [isConnected, markReportSynced]);
+  }, [isConnected, markReportSyncFailed, markReportSynced, markReportSyncing]);
 
   return null;
 }

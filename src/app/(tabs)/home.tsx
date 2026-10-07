@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/common/Card';
+import PendingReportsStatus from '@/components/hazard-report/PendingReportsStatus';
 import CitizenShelterDashboard from '@/components/shelters/CitizenShelterDashboard';
 import { AppColors, Radius, Shadows, Typography } from '@/constants/theme';
 
@@ -59,6 +60,7 @@ export default function HomeScreen() {
           <View style={styles.infoCopy}><Text style={styles.infoTitle}>Emergency Information</Text><Text style={styles.infoDescription}>Safety guidance and emergency contacts</Text></View>
           <Ionicons name="chevron-forward" size={17} color={AppColors.muted} />
         </Card>
+        <PendingReportsStatus />
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,11 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Fonts } from '@/constants/theme';
+import { Redirect } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
+import { AppColors } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 
 const ACTIVE_COLOR = '#1877B9';
 const INACTIVE_COLOR = '#7A8992';
 
 export default function TabLayout() {
+  const { isLoading, user } = useAuth();
+  if (isLoading) return <View style={{ alignItems: 'center', backgroundColor: AppColors.background, flex: 1, justifyContent: 'center' }}><ActivityIndicator color={AppColors.primary} /></View>;
+  if (!user) return <Redirect href="/(auth)/login" />;
+
   return (
     <Tabs
       screenOptions={{
