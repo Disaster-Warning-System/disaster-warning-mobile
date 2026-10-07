@@ -1,0 +1,112 @@
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  FlatList,
+  RefreshControl,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import EmptyState from '@/components/common/EmptyState';
+import ErrorMessage from '@/components/common/ErrorMessage';
+import Loading from '@/components/common/Loading';
+import ShelterCard from '@/components/shelters/ShelterCard';
+import { useShelters } from '@/hooks/useShelters';
+export default function SheltersScreen() {
+  const router = useRouter();
+  const { shelters, loading, error, refresh } = useShelters();
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+  const [search, setSearch] = useState('');
+  const shown = useMemo(
+    () =>
+      shelters.filter((s) =>
+        (s.name + ' ' + s.location)
+          .toLowerCase()
+          .includes(search.toLowerCase()),
+      ),
+    [shelters, search],
+  );
+  return (
+    <SafeAreaView style={styles.safe}>
+      <FlatList
+        contentContainerStyle={styles.content}
+        data={shown}
+        keyExtractor={(s) => s.id}
+        renderItem={({ item }) => (
+          <ShelterCard
+            shelter={item}
+            onPress={() =>
+              router.push({
+                pathname: '/shelters/[id]',
+                params: { id: item.id },
+              })
+            }
+          />
+        )}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={() => void refresh()}
+          />
+        }
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.eyebrow}>DISTRICT RESPONSE</Text>
+            <Text style={styles.title}>Shelter dashboard</Text>
+            <Text style={styles.subtitle}>
+              Review capacity and coordinate availability.
+            </Text>
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search shelters"
+              style={styles.search}
+            />
+            {error ? <ErrorMessage message={error} /> : null}
+            {loading && shelters.length === 0 ? <Loading /> : null}
+          </View>
+        }
+        ListEmptyComponent={
+          !loading && !error ? (
+            <EmptyState
+              icon="business-outline"
+              title="No shelters found"
+              description={
+                search
+                  ? 'Try another name or location.'
+                  : 'Registered shelters will appear here.'
+              }
+            />
+          ) : null
+        }
+      />
+    </SafeAreaView>
+  );
+}
+const styles = StyleSheet.create({
+  safe: { backgroundColor: '#f4f7f9', flex: 1 },
+  content: { padding: 20, paddingBottom: 32 },
+  header: { gap: 12, marginBottom: 18 },
+  eyebrow: {
+    color: '#687c88',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+  },
+  title: { color: '#183447', fontSize: 25, fontWeight: '700' },
+  subtitle: { color: '#71818b', fontSize: 14, lineHeight: 20 },
+  search: {
+    backgroundColor: '#fff',
+    borderColor: '#dce6ea',
+    borderRadius: 10,
+    borderWidth: 1,
+    height: 46,
+    paddingHorizontal: 14,
+  },
+});
