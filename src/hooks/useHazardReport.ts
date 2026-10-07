@@ -53,7 +53,9 @@ type HazardReportContextValue = {
   setPhotoUri: (photoUri: string | null) => void;
   validateReport: () => boolean;
   submitReport: () => Promise<SubmissionResult | null>;
+  markReportSyncing: (localId: string) => void;
   markReportSynced: (localId: string, report: HazardReport) => void;
+  markReportSyncFailed: (localId: string) => void;
   resetReport: () => void;
 };
 
@@ -126,11 +128,17 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
         hazardType,
         description: form.description.trim(),
         localId,
-        localStatus: 'Pending Sync',
+        localStatus: 'Pending Synchronization',
+        syncStatus: 'Pending Synchronization',
         createdAt: new Date().toISOString(),
+        idempotencyKey: localId,
       };
       await savePendingReport(pendingReport);
-      const result: SubmissionResult = { kind: 'pending-sync', localId };
+      const result: SubmissionResult = {
+        kind: 'pending-sync',
+        localId,
+        status: 'Pending Synchronization',
+      };
       setSubmitSuccess(result);
       return result;
     },
@@ -219,10 +227,27 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
     }
   }, [form, isSubmitting, saveForSync, submissionId, validateReport]);
 
+  const markReportSyncing = useCallback((localId: string) => {
+    setSubmitSuccess((current) =>
+      current?.kind === 'pending-sync' && current.localId === localId
+        ? { ...current, status: 'Syncing' }
+        : current,
+    );
+  }, []);
+
   const markReportSynced = useCallback((localId: string, report: HazardReport) => {
     setSubmitSuccess((current) =>
       current?.kind === 'pending-sync' && current.localId === localId
         ? { kind: 'submitted', report }
+        : current,
+    );
+  }, []);
+
+  const markReportSyncFailed = useCallback((localId: string) => {
+    setSubmitSuccess((current) =>
+      (current?.kind === 'pending-sync' || current?.kind === 'sync-failed') &&
+      current.localId === localId
+        ? { kind: 'sync-failed', localId, status: 'Sync Failed' }
         : current,
     );
   }, []);
@@ -249,7 +274,9 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       setPhotoUri,
       validateReport,
       submitReport,
+      markReportSyncing,
       markReportSynced,
+      markReportSyncFailed,
       resetReport,
     }),
     [
@@ -264,7 +291,9 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       setPhotoUri,
       validateReport,
       submitReport,
+      markReportSyncing,
       markReportSynced,
+      markReportSyncFailed,
       resetReport,
     ],
   );

@@ -27,11 +27,17 @@ function parseReport(value: unknown, request: CreateHazardReportRequest): Hazard
   }
 
   const idValue = value.id ?? value._id;
+  const reportIdValue = value.reportId;
   const statusValue = value.status;
+
+  if (typeof reportIdValue !== 'string' || !reportIdValue) {
+    throw new ApiRequestError('The server returned a report without a Report ID.');
+  }
 
   return {
     ...request,
     id: typeof idValue === 'string' ? idValue : null,
+    reportId: reportIdValue,
     status: isReportStatus(statusValue) ? statusValue : 'Pending Verification',
   };
 }
@@ -75,7 +81,11 @@ export async function createHazardReport(
   }
 
   const data = isRecord(responseBody.data) ? responseBody.data : responseBody;
-  const payload = isRecord(data.report) ? data.report : data;
+  const payload = isRecord(responseBody.report)
+    ? responseBody.report
+    : isRecord(data.report)
+      ? data.report
+      : data;
 
   return parseReport(payload, request);
 }
