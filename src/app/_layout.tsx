@@ -18,6 +18,7 @@ import {
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { HazardReportProvider } from '@/hooks/useHazardReport';
 import { ReportSyncManager } from '@/components/hazard-report/ReportSyncManager';
+import ShelterSyncManager from '@/components/shelters/ShelterSyncManager';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,6 +43,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <HazardReportProvider>
         <ReportSyncManager />
+        <ShelterSyncManager />
         <AnimatedSplashOverlay />
         <Stack screenOptions={{ headerShown: false }} />
       </HazardReportProvider>
