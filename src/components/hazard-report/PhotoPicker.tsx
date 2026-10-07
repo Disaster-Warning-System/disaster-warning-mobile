@@ -15,7 +15,7 @@ export default function PhotoPicker({ photoUri, onPhotoChange }: PhotoPickerProp
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleAddPhoto = async () => {
+  const handleSelectPhoto = async () => {
     setIsLoading(true);
     setError('');
     try {
@@ -41,6 +41,30 @@ export default function PhotoPicker({ photoUri, onPhotoChange }: PhotoPickerProp
     }
   };
 
+  const handleTakePhoto = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        setError('Camera permission was denied. You can continue without a photo.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.8,
+        base64: false,
+      });
+      if (!result.canceled && result.assets[0]) {
+        onPhotoChange(result.assets[0].uri);
+      }
+    } catch {
+      setError('Unable to take that photo. Please try again or choose one from your gallery.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.photoStatus}>{photoUri ? 'Photo selected' : 'No photo selected'}</Text>
@@ -54,12 +78,21 @@ export default function PhotoPicker({ photoUri, onPhotoChange }: PhotoPickerProp
       ) : null}
       {error ? <ErrorMessage message={error} /> : null}
       <Button
-        title="Add Photo"
-        onPress={handleAddPhoto}
+        title="Take Photo"
+        onPress={() => void handleTakePhoto()}
         loading={isLoading}
         disabled={isLoading}
         style={styles.button}
       />
+      {!photoUri ? (
+        <Button
+          title="Choose from Gallery"
+          onPress={() => void handleSelectPhoto()}
+          loading={isLoading}
+          disabled={isLoading}
+          style={styles.button}
+        />
+      ) : null}
       {photoUri ? (
         <Button
           title="Remove Photo"

@@ -29,7 +29,7 @@ export type CreateHazardReportRequest = {
   hazardType: HazardType;
   description: string;
   location: HazardReportLocation;
-  photoUrl: string | null;
+  photoFileId: string | null;
 };
 
 export type HazardReport = CreateHazardReportRequest & {
@@ -40,7 +40,6 @@ export type HazardReport = CreateHazardReportRequest & {
 export type LocalPendingHazardReport = Omit<HazardReportForm, 'hazardType'> & {
   hazardType: HazardType;
   localId: string;
-  photoUrl: null;
   localStatus: 'Pending Sync';
   createdAt: string;
 };

@@ -29,6 +29,8 @@ Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the backend origi
 
 Hazard reports waiting for connectivity on Android and iOS are stored in a SQLCipher-encrypted SQLite database. The encryption key is held in SecureStore. SQLCipher is not supported in Expo Go, so use an Expo development build after applying the configured native plugins. The encrypted pending-report queue is mobile-only.
 
+Photos are selected with the camera or gallery and remain local until a report can be sent. When online, the app uploads the photo as multipart form data to `POST /api/uploads/hazard-photo`, then submits the returned `photoFileId` with the report. Offline reports retain their local image URI and perform those steps when connectivity returns; a queued report is removed only after report creation succeeds. The backend stores photos in MongoDB GridFS (not Base64 or cloud storage). JPEG, PNG, and WebP are accepted up to 5 MB.
+
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
 ## Get a fresh project

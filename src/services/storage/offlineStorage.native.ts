@@ -33,7 +33,6 @@ function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazard
     HAZARD_TYPE_SET.has(report.hazardType) &&
     typeof report.description === 'string' &&
     (typeof report.photoUri === 'string' || report.photoUri === null) &&
-    report.photoUrl === null &&
     report.localStatus === 'Pending Sync' &&
     typeof report.createdAt === 'string' &&
     (typeof location.latitude === 'number' || location.latitude === null) &&

@@ -51,7 +51,7 @@ export async function createHazardReport(
       hazardType: request.hazardType,
       description: request.description.trim(),
       location: request.location,
-      photoUrl: request.photoUrl,
+      photoFileId: request.photoFileId,
     }),
   }).catch(() => {
     throw new ApiRequestError('Unable to reach the report service.');
