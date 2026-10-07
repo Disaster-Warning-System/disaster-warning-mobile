@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/common/Card';
+import CitizenShelterDashboard from '@/components/shelters/CitizenShelterDashboard';
 import { AppColors, Radius, Shadows, Typography } from '@/constants/theme';
 
 export default function HomeScreen() {
@@ -46,6 +47,7 @@ export default function HomeScreen() {
             </View>
           </Card>
         </View>
+        <CitizenShelterDashboard />
         <Text style={styles.quickTitle}>Quick Access</Text>
         <Card style={styles.infoCard}>
           <View style={styles.infoIcon}><Ionicons name="warning" size={18} color={AppColors.accent} /></View>

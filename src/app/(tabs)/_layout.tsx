@@ -74,6 +74,7 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="shelters" options={{ title: "Shelters", tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "business" : "business-outline"} size={size} color={color} /> }} />
     </Tabs>
   );
 }
