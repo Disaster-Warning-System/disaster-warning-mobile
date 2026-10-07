@@ -4,11 +4,20 @@ export type HazardReportLocation = {
   latitude: number | null;
   longitude: number | null;
   address: string;
+  district: string;
+};
+
+export type HazardReportSeverity = 'Low' | 'Medium' | 'High';
+
+export type HazardReportEvidence = {
+  url: string;
+  type: string;
 };
 
 export type HazardReportForm = {
   hazardType: HazardType | null;
   description: string;
+  severity: HazardReportSeverity;
   location: HazardReportLocation;
   photoUri: string | null;
 };
@@ -28,8 +37,10 @@ export type ReportStatus =
 export type CreateHazardReportRequest = {
   hazardType: HazardType;
   description: string;
+  severity: HazardReportSeverity;
   location: HazardReportLocation;
   photoFileId: string | null;
+  evidence: HazardReportEvidence[];
 };
 
 export type HazardReport = CreateHazardReportRequest & {

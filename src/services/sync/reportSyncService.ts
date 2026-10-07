@@ -1,6 +1,7 @@
 import * as Network from 'expo-network';
 
 import { createHazardReport } from '@/services/api/hazardReportApi';
+import { getApiUrl } from '@/services/api/apiClient';
 import { deleteHazardPhoto, uploadHazardPhoto } from '@/services/api/hazardPhotoApi';
 import { getPendingReports, removePendingReport } from '@/services/storage/offlineStorage';
 import type {
@@ -35,13 +36,19 @@ async function performSync(): Promise<SyncSummary> {
     const request: CreateHazardReportRequest = {
       hazardType: pending.hazardType,
       description: pending.description,
+      severity: pending.severity,
       location: pending.location,
       photoFileId: null,
+      evidence: [],
     };
 
     try {
       if (pending.photoUri) {
         request.photoFileId = await uploadHazardPhoto(pending.photoUri);
+        request.evidence = [{
+          url: getApiUrl(`/api/uploads/hazard-photo/${encodeURIComponent(request.photoFileId)}`),
+          type: 'image',
+        }];
       }
       let report;
       try {

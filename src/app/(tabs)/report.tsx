@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Button from '@/components/common/Button';
@@ -18,6 +18,7 @@ export default function ReportScreen() {
     validationErrors,
     setHazardType,
     setDescription,
+    setSeverity,
     setLocation,
     setPhotoUri,
     validateReport,
@@ -71,6 +72,21 @@ export default function ReportScreen() {
             onChange={setHazardType}
             error={validationErrors.hazardType}
           />
+          <Text style={styles.fieldLabel}>Severity</Text>
+          <View style={styles.severityOptions}>
+            {(['Low', 'Medium', 'High'] as const).map((severity) => (
+              <Pressable
+                key={severity}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: form.severity === severity }}
+                onPress={() => setSeverity(severity)}
+                style={[styles.severityOption, form.severity === severity && styles.selectedSeverityOption]}>
+                <Text style={[styles.severityText, form.severity === severity && styles.selectedSeverityText]}>
+                  {severity}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -146,6 +162,19 @@ const styles = StyleSheet.create({
   progressFill: { backgroundColor: '#1877B9', borderRadius: 4, height: 4, width: '33%' },
   helper: { ...Typography.secondary, color: '#6B7C8F', fontSize: 14, marginTop: 4 },
   fieldLabel: { ...Typography.label, color: '#16283D', fontSize: 13, marginTop: 18 },
+  severityOptions: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  severityOption: {
+    alignItems: 'center',
+    borderColor: '#C9D5D0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 42,
+    justifyContent: 'center',
+  },
+  selectedSeverityOption: { backgroundColor: '#1877B9', borderColor: '#1877B9' },
+  severityText: { color: '#334941', fontSize: 13, fontWeight: '600' },
+  selectedSeverityText: { color: '#FFFFFF' },
   actions: {
     marginTop: 28,
   },

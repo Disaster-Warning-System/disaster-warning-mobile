@@ -11,7 +11,7 @@ import * as Crypto from 'expo-crypto';
 import * as Network from 'expo-network';
 
 import type { HazardType } from '@/constants/hazardTypes';
-import { ApiRequestError } from '@/services/api/apiClient';
+import { ApiRequestError, getApiUrl } from '@/services/api/apiClient';
 import { createHazardReport } from '@/services/api/hazardReportApi';
 import { deleteHazardPhoto, uploadHazardPhoto } from '@/services/api/hazardPhotoApi';
 import { savePendingReport } from '@/services/storage/offlineStorage';
@@ -28,10 +28,12 @@ import { validateHazardReport } from '@/utils/validation';
 const EMPTY_FORM: HazardReportForm = {
   hazardType: null,
   description: '',
+  severity: 'Medium',
   location: {
     latitude: null,
     longitude: null,
     address: '',
+    district: '',
   },
   photoUri: null,
 };
@@ -46,6 +48,7 @@ type HazardReportContextValue = {
   submitSuccess: SubmissionResult | null;
   setHazardType: (hazardType: HazardType | null) => void;
   setDescription: (description: string) => void;
+  setSeverity: (severity: HazardReportForm['severity']) => void;
   setLocation: (location: HazardReportLocation) => void;
   setPhotoUri: (photoUri: string | null) => void;
   validateReport: () => boolean;
@@ -84,6 +87,11 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       updateForm({ description });
       setValidationErrors((current) => ({ ...current, description: undefined }));
     },
+    [updateForm],
+  );
+
+  const setSeverity = useCallback(
+    (severity: HazardReportForm['severity']) => updateForm({ severity }),
     [updateForm],
   );
 
@@ -161,8 +169,12 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
             {
               hazardType: form.hazardType,
               description: form.description.trim(),
+              severity: form.severity,
               location: form.location,
               photoFileId,
+              evidence: photoFileId
+                ? [{ url: getApiUrl(`/api/uploads/hazard-photo/${encodeURIComponent(photoFileId)}`), type: 'image' }]
+                : [],
             },
             localId,
           );
@@ -232,6 +244,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       submitSuccess,
       setHazardType,
       setDescription,
+      setSeverity,
       setLocation,
       setPhotoUri,
       validateReport,

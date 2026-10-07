@@ -55,6 +55,8 @@ export default function HazardReportConfirmationScreen() {
             </View>
             <Card style={styles.reviewCard}>
               <SummaryRow icon="warning-outline" label="Hazard type" value={form.hazardType ?? 'Not selected'} />
+              <SummaryRow icon="alert-circle-outline" label="Severity" value={form.severity} />
+              <SummaryRow icon="map-outline" label="District" value={form.location.district || 'Not provided'} />
               <SummaryRow
                 icon="document-text-outline"
                 label="Description"
