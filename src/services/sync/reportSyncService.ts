@@ -1,6 +1,7 @@
 import * as Network from 'expo-network';
 
 import { createHazardReport } from '@/services/api/hazardReportApi';
+import { deleteHazardPhoto, uploadHazardPhoto } from '@/services/api/hazardPhotoApi';
 import { getPendingReports, removePendingReport } from '@/services/storage/offlineStorage';
 import type {
   CreateHazardReportRequest,
@@ -35,11 +36,22 @@ async function performSync(): Promise<SyncSummary> {
       hazardType: pending.hazardType,
       description: pending.description,
       location: pending.location,
-      photoUrl: null,
+      photoFileId: null,
     };
 
     try {
-      const report = await createHazardReport(request, pending.localId);
+      if (pending.photoUri) {
+        request.photoFileId = await uploadHazardPhoto(pending.photoUri);
+      }
+      let report;
+      try {
+        report = await createHazardReport(request, pending.localId);
+      } catch (error) {
+        if (request.photoFileId) {
+          await deleteHazardPhoto(request.photoFileId);
+        }
+        throw error;
+      }
       await removePendingReport(pending.localId);
       synced += 1;
       syncedReports.push({ localId: pending.localId, report });

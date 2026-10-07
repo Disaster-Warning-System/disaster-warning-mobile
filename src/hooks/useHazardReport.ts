@@ -13,6 +13,7 @@ import * as Network from 'expo-network';
 import type { HazardType } from '@/constants/hazardTypes';
 import { ApiRequestError } from '@/services/api/apiClient';
 import { createHazardReport } from '@/services/api/hazardReportApi';
+import { deleteHazardPhoto, uploadHazardPhoto } from '@/services/api/hazardPhotoApi';
 import { savePendingReport } from '@/services/storage/offlineStorage';
 import type {
   HazardReportErrors,
@@ -117,7 +118,6 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
         hazardType,
         description: form.description.trim(),
         localId,
-        photoUrl: null,
         localStatus: 'Pending Sync',
         createdAt: new Date().toISOString(),
       };
@@ -151,15 +151,27 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       }
 
       try {
-        const report = await createHazardReport(
-          {
-            hazardType: form.hazardType,
-            description: form.description.trim(),
-            location: form.location,
-            photoUrl: null,
-          },
-          localId,
-        );
+        let photoFileId: string | null = null;
+        if (form.photoUri) {
+          photoFileId = await uploadHazardPhoto(form.photoUri);
+        }
+        let report;
+        try {
+          report = await createHazardReport(
+            {
+              hazardType: form.hazardType,
+              description: form.description.trim(),
+              location: form.location,
+              photoFileId,
+            },
+            localId,
+          );
+        } catch (error) {
+          if (photoFileId) {
+            await deleteHazardPhoto(photoFileId);
+          }
+          throw error;
+        }
         const result: SubmissionResult = { kind: 'submitted', report };
         setSubmitSuccess(result);
         return result;
