@@ -8,7 +8,7 @@ import type {
   UpdateShelterInput,
 } from '@/types/shelter';
 type Props =
-  | { mode: 'create'; onSubmit: (v: CreateShelterInput) => Promise<void> }
+  | { mode: 'create'; onSubmit: (v: Omit<CreateShelterInput, 'locationPoint'>) => Promise<void> }
   | {
       mode: 'update';
       shelter: Shelter;
