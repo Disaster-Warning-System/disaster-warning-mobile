@@ -34,19 +34,32 @@ export default function ShelterForm(props: Props) {
     setError('');
     const cap = Number(capacity),
       occ = Number(occupancy);
-    if (!Number.isInteger(occ) || occ < 0) {
-      setError('Occupancy must be a non-negative whole number.');
+    if (props.mode === 'create' && !name.trim()) {
+      setError('Shelter name is required. Enter a name.');
       return;
     }
-    if (
-      props.mode === 'create' &&
-      (!name.trim() || !location.trim() || !Number.isInteger(cap) || cap < 1)
-    ) {
-      setError('Enter a name, location, and positive whole-number capacity.');
+    if (props.mode === 'create' && !location.trim()) {
+      setError('Shelter location is required. Enter a location.');
+      return;
+    }
+    if (props.mode === 'create' && !capacity.trim()) {
+      setError('Capacity is required. Enter a whole number greater than 0.');
+      return;
+    }
+    if (props.mode === 'create' && (!Number.isInteger(cap) || cap < 1)) {
+      setError('Capacity must be a whole number greater than 0. Enter a valid capacity.');
+      return;
+    }
+    if (!occupancy.trim()) {
+      setError('Current occupancy is required. Enter a whole number from 0 up to capacity.');
+      return;
+    }
+    if (!Number.isInteger(occ) || occ < 0) {
+      setError('Current occupancy must be a whole number from 0 up to capacity.');
       return;
     }
     if (occ > (props.mode === 'update' ? props.shelter.capacity : cap)) {
-      setError('Occupancy cannot exceed shelter capacity.');
+      setError('Current occupancy cannot exceed capacity. Enter a lower occupancy.');
       return;
     }
     setSaving(true);

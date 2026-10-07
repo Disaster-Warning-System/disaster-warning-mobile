@@ -9,7 +9,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Button from '@/components/common/Button';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import Loading from '@/components/common/Loading';
@@ -68,10 +67,6 @@ export default function SheltersScreen() {
               onChangeText={setSearch}
               placeholder="Search shelters"
               style={styles.search}
-            />
-            <Button
-              title="Register new shelter"
-              onPress={() => router.push('/shelters/create')}
             />
             {error ? <ErrorMessage message={error} /> : null}
             {loading && shelters.length === 0 ? <Loading /> : null}
