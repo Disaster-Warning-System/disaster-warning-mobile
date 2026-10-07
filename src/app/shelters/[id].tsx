@@ -1,4 +1,6 @@
 import {
+  Linking,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -17,6 +19,7 @@ export default function ShelterDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [shelter, setShelter] = useState<Shelter | null>(null);
   const [error, setError] = useState('');
+  const [mapError, setMapError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -70,6 +73,26 @@ export default function ShelterDetailsScreen() {
           <Text style={styles.label}>Operational status</Text>
           <Text style={styles.value}>{shelter.operationalStatus}</Text>
           {shelter.remarks ? <Text style={styles.sub}>{shelter.remarks}</Text> : null}
+          {shelter.locationPoint ? (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  const [longitude, latitude] = shelter.locationPoint!.coordinates;
+                  const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`;
+                  void Linking.openURL(url).catch(() =>
+                    setMapError('Could not open OpenStreetMap. Copy the coordinates and try again.'),
+                  );
+                }}
+                style={styles.mapButton}
+              >
+                <Text style={styles.mapButtonText}>View location on OpenStreetMap</Text>
+              </Pressable>
+              {mapError ? <ErrorMessage message={mapError} /> : null}
+            </>
+          ) : (
+            <Text style={styles.sub}>A map location has not been added yet.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -115,4 +138,7 @@ const styles = StyleSheet.create({
   },
   label: { color: '#71818b', fontSize: 13 },
   value: { color: '#183447', fontSize: 15, fontWeight: '700' },
+  mapButton: { alignItems: 'center', backgroundColor: '#1877b9', borderRadius: 10, padding: 13 },
+  mapButtonText: { color: '#fff', fontWeight: '700' },
 });
+
