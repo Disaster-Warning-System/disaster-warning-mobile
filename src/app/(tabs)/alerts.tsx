@@ -23,7 +23,9 @@ type Alert = {
 };
 
 const LAPTOP_IPV4 = process.env.EXPO_PUBLIC_LAPTOP_IPV4 ?? '<YOUR_LAPTOP_IPV4>';
-const ALERTS_URL = `http://${LAPTOP_IPV4}:5000/api/alerts`;
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? `http://${LAPTOP_IPV4}:5000/api`;
+const ALERTS_URL = `${API_BASE_URL.replace(/\/$/, '')}/alerts`;
 const POLL_INTERVAL_MS = 5000;
 
 const severityColors: Record<Severity, string> = {
@@ -106,7 +108,10 @@ export default function AlertsScreen() {
             <View
               style={[
                 styles.card,
-                { borderLeftColor: severityColors[item.severity] },
+                {
+                  borderColor: severityColors[item.severity],
+                  borderLeftColor: severityColors[item.severity],
+                },
               ]}
             >
               <Text
@@ -156,6 +161,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
+    borderColor: '#ca8a04',
+    borderWidth: 1,
     borderLeftWidth: 5,
     borderRadius: 8,
     marginBottom: 12,
