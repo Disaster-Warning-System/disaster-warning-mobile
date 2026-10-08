@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
+  Pressable,
   RefreshControl,
   SafeAreaView,
   StyleSheet,
@@ -13,6 +14,10 @@ import EmptyState from '@/components/common/EmptyState';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import Loading from '@/components/common/Loading';
 import ShelterCard from '@/components/shelters/ShelterCard';
+import { LocationServiceError, getCurrentLocation } from '@/services/location/locationService';
+import type { CurrentLocation } from '@/services/location/locationService';
+import type { Shelter } from '@/types/shelter';
+import { distanceBetweenCoordinatesKm } from '@/utils/geo';
 import { useShelters } from '@/hooks/useShelters';
 export default function SheltersScreen() {
   const router = useRouter();
@@ -23,28 +28,88 @@ export default function SheltersScreen() {
     }, [refresh]),
   );
   const [search, setSearch] = useState('');
+  const [nearbyLocation, setNearbyLocation] = useState<CurrentLocation | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
   const shown = useMemo(
-    () =>
-      shelters.filter((s) =>
-        (s.name + ' ' + s.location)
+    (): { shelter: Shelter; distanceKm?: number }[] => {
+      const matchingShelters = shelters.filter((shelter) =>
+        [
+          shelter.name,
+          shelter.location,
+          shelter.operationalStatus,
+          shelter.availabilityStatus,
+        ]
+          .join(' ')
           .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
-    [shelters, search],
+          .includes(search.trim().toLowerCase()),
+      );
+
+      if (!nearbyLocation) {
+        return matchingShelters.map((shelter) => ({ shelter }));
+      }
+
+      return matchingShelters
+        .filter((shelter) => shelter.locationPoint?.coordinates.length === 2)
+        .map((shelter) => {
+          const [longitude, latitude] = shelter.locationPoint!.coordinates;
+          return {
+            shelter,
+            distanceKm: distanceBetweenCoordinatesKm(
+              nearbyLocation.latitude,
+              nearbyLocation.longitude,
+              latitude,
+              longitude,
+            ),
+          };
+        })
+        .filter(
+          ({ shelter }) =>
+            !onlyAvailable ||
+            (shelter.operationalStatus === 'Open' && shelter.availableSpaces > 0),
+        )
+        .sort((first, second) => first.distanceKm! - second.distanceKm!);
+    },
+    [shelters, search, nearbyLocation, onlyAvailable],
   );
+
+  const findNearbyShelters = async () => {
+    setLocationLoading(true);
+    setLocationError('');
+    try {
+      setNearbyLocation(await getCurrentLocation());
+    } catch (reason) {
+      if (reason instanceof LocationServiceError) {
+        const messages = {
+          'permission-denied': 'Location access is off. Allow it in Settings to find nearby shelters.',
+          'services-disabled': 'Turn on device location services to find nearby shelters.',
+          timeout: 'Could not get your location in time. Move to an open area and try again.',
+          unavailable: 'Your current location is unavailable. Try again or search by name or location.',
+        };
+        setLocationError(messages[reason.code]);
+      } else {
+        setLocationError('Could not get your location. Try again or search by name or location.');
+      }
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
         contentContainerStyle={styles.content}
         data={shown}
-        keyExtractor={(s) => s.id}
+        keyExtractor={(item) => item.shelter.id}
         renderItem={({ item }) => (
           <ShelterCard
-            shelter={item}
+            shelter={item.shelter}
+            distanceKm={item.distanceKm}
             onPress={() =>
               router.push({
                 pathname: '/shelters/[id]',
-                params: { id: item.id },
+                params: { id: item.shelter.id },
               })
             }
           />
@@ -68,6 +133,47 @@ export default function SheltersScreen() {
               placeholder="Search shelters"
               style={styles.search}
             />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: locationLoading }}
+              disabled={locationLoading}
+              onPress={() => void findNearbyShelters()}
+              style={[styles.nearbyButton, locationLoading && styles.disabledButton]}
+            >
+              <Text style={styles.nearbyButtonText}>
+                {locationLoading
+                  ? 'Finding your location...'
+                  : nearbyLocation
+                    ? 'Refresh nearby shelters'
+                    : 'Find shelters near me'}
+              </Text>
+            </Pressable>
+            {nearbyLocation ? (
+              <View style={styles.nearbyTools}>
+                <Text style={styles.nearbyNote}>Straight-line distance · nearest first</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: onlyAvailable }}
+                  onPress={() => setOnlyAvailable((current) => !current)}
+                  style={[styles.filterButton, onlyAvailable && styles.activeFilterButton]}
+                >
+                  <Text style={[styles.filterText, onlyAvailable && styles.activeFilterText]}>
+                    {onlyAvailable ? 'Showing with spaces' : 'Only with spaces'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setNearbyLocation(null);
+                    setOnlyAvailable(false);
+                  }}
+                  style={styles.clearNearbyButton}
+                >
+                  <Text style={styles.clearNearbyText}>Show all</Text>
+                </Pressable>
+              </View>
+            ) : null}
+            {locationError ? <ErrorMessage message={locationError} /> : null}
             {error ? <ErrorMessage message={error} /> : null}
             {loading && shelters.length === 0 ? <Loading /> : null}
           </View>
@@ -76,9 +182,13 @@ export default function SheltersScreen() {
           !loading && !error ? (
             <EmptyState
               icon="business-outline"
-              title="No shelters found"
+              title={nearbyLocation ? 'No nearby shelters found' : 'No shelters found'}
               description={
-                search
+                nearbyLocation && onlyAvailable
+                  ? 'No nearby open shelters currently have available spaces. Turn off the filter to see all nearby shelters.'
+                  : nearbyLocation
+                    ? 'No shelters with a saved map location match your search.'
+                    : search
                   ? 'Try another name or location.'
                   : 'Registered shelters will appear here.'
               }
@@ -109,4 +219,33 @@ const styles = StyleSheet.create({
     height: 46,
     paddingHorizontal: 14,
   },
+  nearbyButton: {
+    alignItems: 'center',
+    backgroundColor: '#1877B9',
+    borderRadius: 10,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 16,
+  },
+  disabledButton: { opacity: 0.65 },
+  nearbyButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  nearbyTools: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  nearbyNote: { color: '#6B7C8F', flexGrow: 1, fontSize: 12 },
+  filterButton: {
+    borderColor: '#DDE5EE',
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  activeFilterButton: { backgroundColor: '#E8F2FC', borderColor: '#1877B9' },
+  filterText: { color: '#1877B9', fontSize: 12, fontWeight: '600' },
+  activeFilterText: { color: '#075B94' },
+  clearNearbyButton: { paddingHorizontal: 8, paddingVertical: 8 },
+  clearNearbyText: { color: '#1877B9', fontSize: 12, fontWeight: '700' },
 });

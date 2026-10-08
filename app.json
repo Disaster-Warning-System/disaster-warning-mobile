@@ -36,7 +36,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Disaster Warning System to use your location when reporting a hazard."
+          "locationWhenInUsePermission": "Allow Disaster Warning System to use your location to find nearby shelters and report a hazard."
         }
       ],
       [
