@@ -7,11 +7,13 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import Loading from '@/components/common/Loading';
 import ShelterStatusBadge from '@/components/shelters/ShelterStatusBadge';
+import { getApiUrl } from '@/services/api/apiClient';
 import { getCurrentLocation, LocationServiceError } from '@/services/location/locationService';
 import { getShelter } from '@/services/api/shelterApi';
 import type { Shelter } from '@/types/shelter';
@@ -21,6 +23,7 @@ export default function ShelterDetailsScreen() {
   const [shelter, setShelter] = useState<Shelter | null>(null);
   const [error, setError] = useState('');
   const [mapError, setMapError] = useState('');
+  const [failedImageId, setFailedImageId] = useState<string | null>(null);
   const [directionsError, setDirectionsError] = useState('');
   const [gettingDirections, setGettingDirections] = useState(false);
 
@@ -88,6 +91,20 @@ export default function ShelterDetailsScreen() {
           ‹ Back to shelters
         </Link>
         <View style={styles.card}>
+          {shelter.imageId && failedImageId !== shelter.imageId ? (
+            <Image
+              source={{ uri: getApiUrl(`/api/shelters/images/${encodeURIComponent(shelter.imageId)}`) }}
+              style={styles.shelterImage}
+              contentFit="cover"
+              transition={180}
+              accessibilityLabel={`${shelter.name} shelter`}
+              onError={() => setFailedImageId(shelter.imageId ?? null)}
+            />
+          ) : failedImageId === shelter.imageId && shelter.imageId ? (
+            <View accessibilityRole="image" accessibilityLabel="Shelter image unavailable" style={styles.imageUnavailable}>
+              <Text style={styles.imageUnavailableText}>Shelter photo could not be loaded.</Text>
+            </View>
+          ) : null}
           <View style={styles.row}>
             <View style={styles.flex}>
               <Text style={styles.title}>{shelter.name}</Text>
@@ -176,6 +193,21 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 18,
   },
+  shelterImage: {
+    backgroundColor: '#f4f7f9',
+    borderRadius: 12,
+    height: 210,
+    width: '100%',
+  },
+  imageUnavailable: {
+    alignItems: 'center',
+    backgroundColor: '#f4f7f9',
+    borderRadius: 12,
+    justifyContent: 'center',
+    minHeight: 120,
+    padding: 16,
+  },
+  imageUnavailableText: { color: '#71818b', fontSize: 13 },
   row: {
     alignItems: 'flex-start',
     flexDirection: 'row',
