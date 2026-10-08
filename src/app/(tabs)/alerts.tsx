@@ -1,116 +1,198 @@
+import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+type Severity = 'Advisory' | 'Watch' | 'Warning' | 'Evacuation Order';
 
 type Alert = {
-  _id: string;
+  _id?: string;
   alertId: string;
+  severity: Severity;
   headline: string;
   instruction: string;
-  severity: 'Advisory' | 'Watch' | 'Warning' | 'Evacuation Order';
-  districts: string[];
+  issuedAt?: string;
   createdAt?: string;
 };
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+const LAPTOP_IPV4 = process.env.EXPO_PUBLIC_LAPTOP_IPV4 ?? '<YOUR_LAPTOP_IPV4>';
+const ALERTS_URL = `http://${LAPTOP_IPV4}:5000/api/alerts`;
+const POLL_INTERVAL_MS = 5000;
 
-const severityColors: Record<Alert['severity'], string> = {
+const severityColors: Record<Severity, string> = {
   Advisory: '#2563eb',
   Watch: '#ca8a04',
-  Warning: '#ea580c',
+  Warning: '#dc2626',
   'Evacuation Order': '#dc2626',
 };
+
+function formatAlertTime(alert: Alert): string {
+  const timestamp = alert.issuedAt ?? alert.createdAt;
+  if (!timestamp) return 'Time unavailable';
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return 'Time unavailable';
+
+  return date.toLocaleString();
+}
 
 export default function AlertsScreen() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadAlerts = useCallback(async () => {
+  const fetchAlerts = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/alerts`);
-      if (!response.ok) throw new Error('Unable to load alerts');
-      setAlerts(await response.json());
+      const response = await axios.get<Alert[]>(ALERTS_URL);
+      setAlerts(response.data);
       setError(null);
     } catch {
       setError('Alerts are unavailable. We will retry automatically.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
-    const initialLoad = setTimeout(loadAlerts, 0);
-    const interval = setInterval(loadAlerts, 30000);
+    const initialFetch = setTimeout(() => {
+      void fetchAlerts();
+    }, 0);
+    const interval = setInterval(() => {
+      void fetchAlerts();
+    }, POLL_INTERVAL_MS);
+
     return () => {
-      clearTimeout(initialLoad);
+      clearTimeout(initialFetch);
       clearInterval(interval);
     };
-  }, [loadAlerts]);
+  }, [fetchAlerts]);
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Hazard Alerts</Text>
-      {loading ? <ActivityIndicator /> : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <FlatList
-        data={alerts}
-        keyExtractor={(item) => item._id || item.alertId}
-        ListEmptyComponent={!loading ? <Text>No dispatched alerts yet.</Text> : null}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { borderLeftColor: severityColors[item.severity] }]}>
-            <Text style={[styles.severity, { color: severityColors[item.severity] }]}>
-              {item.severity}
-            </Text>
-            <Text style={styles.headline}>{item.headline}</Text>
-            <Text style={styles.instruction}>{item.instruction}</Text>
-            <Text style={styles.districts}>{item.districts.join(' • ')}</Text>
-          </View>
-        )}
-      />
-    </View>
-import { ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  const handleRefresh = () => {
+    setRefreshing(true);
+    void fetchAlerts();
+  };
 
-import EmptyState from '@/components/common/EmptyState';
-import ScreenHeader from '@/components/common/ScreenHeader';
-import { AppColors } from '@/constants/theme';
-
-export default function AlertsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <ScreenHeader title="Alerts" subtitle="Official warnings and important safety updates." />
-        <EmptyState
-          icon="notifications-off-outline"
-          title="No active alerts"
-          description="You'll see important disaster warnings here when they are issued."
-          style={styles.emptyCard}
+      <View style={styles.container}>
+        <Text style={styles.title}>Hazard Alerts</Text>
+        <Text style={styles.subtitle}>Live updates every 5 seconds</Text>
+
+        {loading ? <ActivityIndicator size="large" color="#2563eb" /> : null}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <FlatList
+          data={alerts}
+          keyExtractor={(item) => item._id ?? item.alertId}
+          contentContainerStyle={alerts.length === 0 ? styles.emptyList : styles.list}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+          ListEmptyComponent={
+            !loading ? (
+              <Text style={styles.emptyText}>No dispatched alerts yet.</Text>
+            ) : null
+          }
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.card,
+                { borderLeftColor: severityColors[item.severity] },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.severity,
+                  { color: severityColors[item.severity] },
+                ]}
+              >
+                {item.severity}
+              </Text>
+              <Text style={styles.time}>{formatAlertTime(item)}</Text>
+              <Text style={styles.headline}>{item.headline}</Text>
+              <Text style={styles.instruction}>{item.instruction}</Text>
+            </View>
+          )}
         />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f8fafc' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 16 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  title: {
+    color: '#0f172a',
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  subtitle: {
+    color: '#64748b',
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  list: {
+    paddingBottom: 20,
+  },
+  emptyList: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   card: {
     backgroundColor: '#fff',
     borderLeftWidth: 5,
     borderRadius: 8,
-    padding: 16,
     marginBottom: 12,
+    padding: 16,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 4,
+    elevation: 2,
   },
-  severity: { fontWeight: '700', textTransform: 'uppercase', fontSize: 12 },
-  headline: { fontSize: 18, fontWeight: '700', marginTop: 6 },
-  instruction: { fontSize: 15, marginTop: 8, lineHeight: 21 },
-  districts: { color: '#64748b', marginTop: 10 },
-  error: { color: '#b91c1c', marginBottom: 12 },
-});
-  safeArea: { backgroundColor: AppColors.background, flex: 1 },
-  content: { flexGrow: 1, padding: 24, paddingTop: 28 },
-  emptyCard: { marginTop: 26 },
+  severity: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  time: {
+    color: '#64748b',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  headline: {
+    color: '#0f172a',
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+  instruction: {
+    color: '#334155',
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 8,
+  },
+  error: {
+    color: '#b91c1c',
+    marginBottom: 12,
+  },
+  emptyText: {
+    color: '#64748b',
+    textAlign: 'center',
+  },
 });
