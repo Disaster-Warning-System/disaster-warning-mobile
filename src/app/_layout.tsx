@@ -18,7 +18,6 @@ import {
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { HazardReportProvider } from '@/hooks/useHazardReport';
 import { ReportSyncManager } from '@/components/hazard-report/ReportSyncManager';
-import { AuthProvider } from '@/context/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,13 +40,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <HazardReportProvider>
-          <ReportSyncManager />
-          <AnimatedSplashOverlay />
-          <Stack screenOptions={{ headerShown: false }} />
-        </HazardReportProvider>
-      </AuthProvider>
+      <HazardReportProvider>
+        <ReportSyncManager />
+        <AnimatedSplashOverlay />
+        <Stack screenOptions={{ headerShown: false }} />
+      </HazardReportProvider>
     </ThemeProvider>
   );
 }

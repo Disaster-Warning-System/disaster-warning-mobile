@@ -11,9 +11,8 @@ import * as Crypto from 'expo-crypto';
 import * as Network from 'expo-network';
 
 import type { HazardType } from '@/constants/hazardTypes';
-import { ApiRequestError, getApiUrl } from '@/services/api/apiClient';
+import { ApiRequestError } from '@/services/api/apiClient';
 import { createHazardReport } from '@/services/api/hazardReportApi';
-import { useAuth } from '@/context/AuthContext';
 import { deleteHazardPhoto, uploadHazardPhoto } from '@/services/api/hazardPhotoApi';
 import { savePendingReport } from '@/services/storage/offlineStorage';
 import type {
@@ -29,12 +28,10 @@ import { validateHazardReport } from '@/utils/validation';
 const EMPTY_FORM: HazardReportForm = {
   hazardType: null,
   description: '',
-  severity: 'Medium',
   location: {
     latitude: null,
     longitude: null,
     address: '',
-    district: '',
   },
   photoUri: null,
 };
@@ -49,21 +46,17 @@ type HazardReportContextValue = {
   submitSuccess: SubmissionResult | null;
   setHazardType: (hazardType: HazardType | null) => void;
   setDescription: (description: string) => void;
-  setSeverity: (severity: HazardReportForm['severity']) => void;
   setLocation: (location: HazardReportLocation) => void;
   setPhotoUri: (photoUri: string | null) => void;
   validateReport: () => boolean;
   submitReport: () => Promise<SubmissionResult | null>;
-  markReportSyncing: (localId: string) => void;
   markReportSynced: (localId: string, report: HazardReport) => void;
-  markReportSyncFailed: (localId: string) => void;
   resetReport: () => void;
 };
 
 const HazardReportContext = createContext<HazardReportContextValue | null>(null);
 
 export function HazardReportProvider({ children }: PropsWithChildren) {
-  const { token } = useAuth();
   const [form, setForm] = useState<HazardReportForm>(EMPTY_FORM);
   const [validationErrors, setValidationErrors] = useState<HazardReportErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,11 +84,6 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       updateForm({ description });
       setValidationErrors((current) => ({ ...current, description: undefined }));
     },
-    [updateForm],
-  );
-
-  const setSeverity = useCallback(
-    (severity: HazardReportForm['severity']) => updateForm({ severity }),
     [updateForm],
   );
 
@@ -130,17 +118,11 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
         hazardType,
         description: form.description.trim(),
         localId,
-        localStatus: 'Pending Synchronization',
-        syncStatus: 'Pending Synchronization',
+        localStatus: 'Pending Sync',
         createdAt: new Date().toISOString(),
-        idempotencyKey: localId,
       };
       await savePendingReport(pendingReport);
-      const result: SubmissionResult = {
-        kind: 'pending-sync',
-        localId,
-        status: 'Pending Synchronization',
-      };
+      const result: SubmissionResult = { kind: 'pending-sync', localId };
       setSubmitSuccess(result);
       return result;
     },
@@ -179,15 +161,10 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
             {
               hazardType: form.hazardType,
               description: form.description.trim(),
-              severity: form.severity,
               location: form.location,
               photoFileId,
-              evidence: photoFileId
-                ? [{ url: getApiUrl(`/api/uploads/hazard-photo/${encodeURIComponent(photoFileId)}`), type: 'image' }]
-                : [],
             },
             localId,
-            token,
           );
         } catch (error) {
           if (photoFileId) {
@@ -228,29 +205,12 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       submissionInProgress = false;
       setIsSubmitting(false);
     }
-  }, [form, isSubmitting, saveForSync, submissionId, token, validateReport]);
-
-  const markReportSyncing = useCallback((localId: string) => {
-    setSubmitSuccess((current) =>
-      current?.kind === 'pending-sync' && current.localId === localId
-        ? { ...current, status: 'Syncing' }
-        : current,
-    );
-  }, []);
+  }, [form, isSubmitting, saveForSync, submissionId, validateReport]);
 
   const markReportSynced = useCallback((localId: string, report: HazardReport) => {
     setSubmitSuccess((current) =>
       current?.kind === 'pending-sync' && current.localId === localId
         ? { kind: 'submitted', report }
-        : current,
-    );
-  }, []);
-
-  const markReportSyncFailed = useCallback((localId: string) => {
-    setSubmitSuccess((current) =>
-      (current?.kind === 'pending-sync' || current?.kind === 'sync-failed') &&
-      current.localId === localId
-        ? { kind: 'sync-failed', localId, status: 'Sync Failed' }
         : current,
     );
   }, []);
@@ -272,14 +232,11 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       submitSuccess,
       setHazardType,
       setDescription,
-      setSeverity,
       setLocation,
       setPhotoUri,
       validateReport,
       submitReport,
-      markReportSyncing,
       markReportSynced,
-      markReportSyncFailed,
       resetReport,
     }),
     [
@@ -294,9 +251,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       setPhotoUri,
       validateReport,
       submitReport,
-      markReportSyncing,
       markReportSynced,
-      markReportSyncFailed,
       resetReport,
     ],
   );
