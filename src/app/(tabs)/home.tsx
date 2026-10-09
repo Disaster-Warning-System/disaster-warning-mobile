@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,8 +9,23 @@ import PendingReportsStatus from '@/components/hazard-report/PendingReportsStatu
 import CitizenShelterDashboard from '@/components/shelters/CitizenShelterDashboard';
 import { AppColors, Radius, Shadows, Typography } from '@/constants/theme';
 
+function getTimeGreeting(date: Date) {
+  const hour = date.getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  if (hour < 21) return 'Good evening';
+  return 'Good night';
+}
+
 export default function HomeScreen() {
   const router = useRouter();
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const greeting = useMemo(() => getTimeGreeting(currentTime), [currentTime]);
+
+  useEffect(() => {
+    const clock = setInterval(() => setCurrentTime(new Date()), 60_000);
+    return () => clearInterval(clock);
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -17,7 +33,10 @@ export default function HomeScreen() {
         <View style={styles.topRow}>
           <View>
             <Text style={styles.eyebrow}>SMART DISASTER</Text>
-            <Text style={styles.title}>Good morning 👋</Text>
+            <View style={styles.greetingRow}>
+              <Text style={styles.title}>{greeting}</Text>
+              <Ionicons name="sparkles-outline" size={22} color={AppColors.primary} />
+            </View>
             <Text style={styles.subtitle}>Stay informed. Stay safe.</Text>
           </View>
           <View style={styles.bell}><Ionicons name="notifications-outline" size={19} color={AppColors.text} /></View>
@@ -71,6 +90,7 @@ const styles = StyleSheet.create({
   content: { flexGrow: 1, paddingBottom: 24, paddingHorizontal: 20, paddingTop: 22 },
   topRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   eyebrow: { ...Typography.label, color: AppColors.muted, letterSpacing: 1 },
+  greetingRow: { alignItems: 'center', flexDirection: 'row', gap: 8 },
   title: { ...Typography.title, color: AppColors.text, fontSize: 24, marginTop: 4 },
   subtitle: { ...Typography.secondary, color: AppColors.muted, fontSize: 13, marginTop: 3 },
   bell: { alignItems: 'center', backgroundColor: AppColors.surface, borderRadius: 20, height: 40, justifyContent: 'center', width: 40, ...Shadows.card },
