@@ -9,6 +9,7 @@ const AUTH_KEY = 'disaster-warning-auth';
 
 type AuthContextValue = {
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user: auth?.user ?? null,
+      token: auth?.token ?? null,
       isLoading,
       login: async (input) => saveAuth(await loginRequest(input)),
       register: async (input) => saveAuth(await registerRequest(input)),

@@ -1,4 +1,5 @@
 import { ApiRequestError, getApiUrl } from '@/services/api/apiClient';
+import { getStoredAuth } from '@/services/auth/authStorage';
 import type {
   CreateHazardReportRequest,
   HazardReport,
@@ -77,14 +78,21 @@ function parseFetchedReport(value: unknown): HazardReport {
     photoFileId: typeof value.photoFileId === 'string' ? value.photoFileId : null,
     evidence,
     status: isReportStatus(value.status) ? value.status : 'Pending Verification',
+    remarks: typeof value.remarks === 'string' ? value.remarks : '',
+    rejectionReason: typeof value.rejectionReason === 'string' ? value.rejectionReason : '',
     createdAt: typeof value.createdAt === 'string' ? value.createdAt : undefined,
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : undefined,
   };
 }
 
-export async function getHazardReports(): Promise<HazardReport[]> {
+export async function getHazardReports(token?: string | null): Promise<HazardReport[]> {
+  const auth = token ? null : await getStoredAuth();
+  const authToken = token ?? auth?.token;
   const response = await fetch(getApiUrl('/api/hazard-reports'), {
-    headers: { Accept: 'application/json' },
+    headers: {
+      Accept: 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
   }).catch(() => {
     throw new ApiRequestError('Unable to reach the report service.');
   });
@@ -112,13 +120,17 @@ export async function getHazardReports(): Promise<HazardReport[]> {
 export async function createHazardReport(
   request: CreateHazardReportRequest,
   idempotencyKey: string,
+  token?: string | null,
 ): Promise<HazardReport> {
+  const auth = token ? null : await getStoredAuth();
+  const authToken = token ?? auth?.token;
   const response = await fetch(getApiUrl('/api/hazard-reports'), {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'Idempotency-Key': idempotencyKey,
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     },
     body: JSON.stringify({
       hazardType: request.hazardType,

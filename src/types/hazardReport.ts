@@ -53,6 +53,8 @@ export type HazardReport = CreateHazardReportRequest & {
   id: string | null;
   reportId: string;
   status: ReportStatus;
+  remarks?: string;
+  rejectionReason?: string;
   createdAt?: string;
   updatedAt?: string;
   photoFileId?: string | null;
