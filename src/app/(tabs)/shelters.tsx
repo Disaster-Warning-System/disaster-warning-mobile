@@ -16,7 +16,7 @@ import Loading from '@/components/common/Loading';
 import ShelterCard from '@/components/shelters/ShelterCard';
 import { LocationServiceError, getCurrentLocation } from '@/services/location/locationService';
 import type { CurrentLocation } from '@/services/location/locationService';
-import type { Shelter } from '@/types/shelter';
+import { getVisibleShelters } from '@/utils/shelterSearch';
 import { distanceBetweenCoordinatesKm } from '@/utils/geo';
 import { useShelters } from '@/hooks/useShelters';
 export default function SheltersScreen() {
@@ -33,44 +33,7 @@ export default function SheltersScreen() {
   const [locationError, setLocationError] = useState('');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const shown = useMemo(
-    (): { shelter: Shelter; distanceKm?: number }[] => {
-      const matchingShelters = shelters.filter((shelter) =>
-        [
-          shelter.name,
-          shelter.location,
-          shelter.operationalStatus,
-          shelter.availabilityStatus,
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(search.trim().toLowerCase()),
-      );
-
-      if (!nearbyLocation) {
-        return matchingShelters.map((shelter) => ({ shelter }));
-      }
-
-      return matchingShelters
-        .filter((shelter) => shelter.locationPoint?.coordinates.length === 2)
-        .map((shelter) => {
-          const [longitude, latitude] = shelter.locationPoint!.coordinates;
-          return {
-            shelter,
-            distanceKm: distanceBetweenCoordinatesKm(
-              nearbyLocation.latitude,
-              nearbyLocation.longitude,
-              latitude,
-              longitude,
-            ),
-          };
-        })
-        .filter(
-          ({ shelter }) =>
-            !onlyAvailable ||
-            (shelter.operationalStatus === 'Open' && shelter.availableSpaces > 0),
-        )
-        .sort((first, second) => first.distanceKm! - second.distanceKm!);
-    },
+    () => getVisibleShelters(shelters, search, nearbyLocation, onlyAvailable, distanceBetweenCoordinatesKm),
     [shelters, search, nearbyLocation, onlyAvailable],
   );
 
