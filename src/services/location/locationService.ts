@@ -84,6 +84,5 @@ export function toHazardReportLocation(location: CurrentLocation): HazardReportL
     latitude: location.latitude,
     longitude: location.longitude,
     address: location.address,
-    district: '',
   };
 }

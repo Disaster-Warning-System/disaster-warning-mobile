@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as SQLite from 'expo-sqlite';
 
 import { HAZARD_TYPES } from '@/constants/hazardTypes';
-import type { LocalPendingHazardReport, ReportSyncStatus } from '@/types/hazardReport';
+import type { LocalPendingHazardReport } from '@/types/hazardReport';
 
 const DATABASE_NAME = 'hazard-reports.db';
 const SECURE_KEY_NAME = 'hazard-reports-sqlcipher-key';
@@ -24,7 +24,6 @@ function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazard
   }
   const report = value as Partial<LocalPendingHazardReport>;
   const location = report.location;
-  const localStatus = report.localStatus as string;
   if (!location) {
     return false;
   }
@@ -34,30 +33,12 @@ function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazard
     HAZARD_TYPE_SET.has(report.hazardType) &&
     typeof report.description === 'string' &&
     (typeof report.photoUri === 'string' || report.photoUri === null) &&
-    (localStatus === 'Pending Synchronization' ||
-      localStatus === 'Syncing' ||
-      localStatus === 'Synced' ||
-      localStatus === 'Sync Failed' ||
-      localStatus === 'Pending Sync') &&
+    report.localStatus === 'Pending Sync' &&
     typeof report.createdAt === 'string' &&
     (typeof location.latitude === 'number' || location.latitude === null) &&
     (typeof location.longitude === 'number' || location.longitude === null) &&
-    typeof location.address === 'string' &&
-    (typeof report.syncStatus === 'string' || localStatus === 'Pending Sync') &&
-    (typeof report.idempotencyKey === 'string' || localStatus === 'Pending Sync')
+    typeof location.address === 'string'
   );
-}
-
-function migrateReport(report: LocalPendingHazardReport): LocalPendingHazardReport {
-  const legacyStatus = report.localStatus as string;
-  const syncStatus: ReportSyncStatus =
-    legacyStatus === 'Pending Sync' ? 'Pending Synchronization' : report.syncStatus;
-  return {
-    ...report,
-    localStatus: syncStatus,
-    syncStatus,
-    idempotencyKey: report.idempotencyKey || report.localId,
-  };
 }
 
 async function openEncryptedDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -123,29 +104,8 @@ export async function getPendingReports(): Promise<LocalPendingHazardReport[]> {
     if (!isLocalPendingHazardReport(parsed)) {
       throw new Error('A saved pending report has an invalid format.');
     }
-    return migrateReport(parsed);
+    return parsed;
   });
-}
-
-export async function updatePendingReport(
-  localId: string,
-  update: Pick<LocalPendingHazardReport, 'localStatus' | 'syncStatus'>,
-): Promise<void> {
-  const database = await getDatabase();
-  const current = await database.getFirstAsync<PendingReportRow>(
-    'SELECT payload FROM pending_hazard_reports WHERE local_id = ?',
-    localId,
-  );
-  if (!current) {
-    return;
-  }
-  const report = migrateReport(JSON.parse(current.payload) as LocalPendingHazardReport);
-  const updated = { ...report, ...update };
-  await database.runAsync(
-    'UPDATE pending_hazard_reports SET payload = ? WHERE local_id = ?',
-    JSON.stringify(updated),
-    localId,
-  );
 }
 
 export async function removePendingReport(localId: string): Promise<void> {

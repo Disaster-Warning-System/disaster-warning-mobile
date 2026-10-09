@@ -7,7 +7,6 @@
     "@expo-google-fonts/noto-sans-sinhala": "^0.4.2",
     "@expo/ui": "~57.0.21",
     "@expo/vector-icons": "^15.0.2",
-    "axios": "^1.20.0",
     "expo": "~57.0.26",
     "expo-constants": "~57.0.20",
     "expo-crypto": "~57.0.3",
@@ -39,18 +38,15 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "eslint": "^9.0.0",
-    "eslint-config-expo": "~57.0.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "lint": "expo lint"
   },
   "private": true
 }
