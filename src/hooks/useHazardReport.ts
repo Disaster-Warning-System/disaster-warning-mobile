@@ -13,6 +13,7 @@ import * as Network from 'expo-network';
 import type { HazardType } from '@/constants/hazardTypes';
 import { ApiRequestError, getApiUrl } from '@/services/api/apiClient';
 import { createHazardReport } from '@/services/api/hazardReportApi';
+import { useAuth } from '@/context/AuthContext';
 import { deleteHazardPhoto, uploadHazardPhoto } from '@/services/api/hazardPhotoApi';
 import { savePendingReport } from '@/services/storage/offlineStorage';
 import type {
@@ -62,6 +63,7 @@ type HazardReportContextValue = {
 const HazardReportContext = createContext<HazardReportContextValue | null>(null);
 
 export function HazardReportProvider({ children }: PropsWithChildren) {
+  const { token } = useAuth();
   const [form, setForm] = useState<HazardReportForm>(EMPTY_FORM);
   const [validationErrors, setValidationErrors] = useState<HazardReportErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -185,6 +187,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
                 : [],
             },
             localId,
+            token,
           );
         } catch (error) {
           if (photoFileId) {
@@ -225,7 +228,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       submissionInProgress = false;
       setIsSubmitting(false);
     }
-  }, [form, isSubmitting, saveForSync, submissionId, validateReport]);
+  }, [form, isSubmitting, saveForSync, submissionId, token, validateReport]);
 
   const markReportSyncing = useCallback((localId: string) => {
     setSubmitSuccess((current) =>

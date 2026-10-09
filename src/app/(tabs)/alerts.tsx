@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getApiUrl } from '@/services/api/apiClient';
 
 type Severity = 'Advisory' | 'Watch' | 'Warning' | 'Evacuation Order';
 
@@ -22,10 +23,7 @@ type Alert = {
   createdAt?: string;
 };
 
-const LAPTOP_IPV4 = process.env.EXPO_PUBLIC_LAPTOP_IPV4 ?? '<YOUR_LAPTOP_IPV4>';
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? `http://${LAPTOP_IPV4}:5000/api`;
-const ALERTS_URL = `${API_BASE_URL.replace(/\/$/, '')}/alerts`;
+const ALERTS_URL = getApiUrl('/api/alerts');
 const POLL_INTERVAL_MS = 5000;
 
 const severityColors: Record<Severity, string> = {
@@ -54,7 +52,7 @@ export default function AlertsScreen() {
   const fetchAlerts = useCallback(async () => {
     try {
       const response = await axios.get<Alert[]>(ALERTS_URL);
-      setAlerts(response.data);
+      setAlerts(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch {
       setError('Alerts are unavailable. We will retry automatically.');

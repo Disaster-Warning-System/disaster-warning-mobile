@@ -24,6 +24,7 @@ let activeSync: Promise<SyncSummary> | null = null;
 
 type SyncOptions = {
   onStatusChange?: (localId: string, status: 'Syncing') => void;
+  token?: string | null;
 };
 
 async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
@@ -72,7 +73,7 @@ async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
       }
       let report;
       try {
-        report = await createHazardReport(request, pending.idempotencyKey);
+        report = await createHazardReport(request, pending.idempotencyKey, options.token);
       } catch (error) {
         if (request.photoFileId) {
           await deleteHazardPhoto(request.photoFileId);

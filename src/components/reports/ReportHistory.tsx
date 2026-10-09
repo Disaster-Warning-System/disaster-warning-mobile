@@ -10,6 +10,7 @@ import ReportStatusBadge from '@/components/reports/ReportStatusBadge';
 import { AppColors, Typography } from '@/constants/theme';
 import { ApiRequestError } from '@/services/api/apiClient';
 import { getHazardReports } from '@/services/api/hazardReportApi';
+import { useAuth } from '@/context/AuthContext';
 import type { HazardReport } from '@/types/hazardReport';
 
 function formatDate(value?: string) {
@@ -24,6 +25,7 @@ function locationLabel(report: HazardReport) {
 
 export default function ReportHistory({ onSubmitNew }: { onSubmitNew: () => void }) {
   const router = useRouter();
+  const { token } = useAuth();
   const [reports, setReports] = useState<HazardReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -34,14 +36,14 @@ export default function ReportHistory({ onSubmitNew }: { onSubmitNew: () => void
     else setLoading(true);
     setError('');
     try {
-      setReports(await getHazardReports());
+      setReports(await getHazardReports(token));
     } catch (requestError) {
       setError(requestError instanceof ApiRequestError ? requestError.message : 'Unable to load your reports.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     void loadReports();

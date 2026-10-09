@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,7 +23,6 @@ function locationLabel(report: HazardReport) {
 }
 
 export default function ReportDetailsScreen() {
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [report, setReport] = useState<HazardReport | null>(null);
   const [error, setError] = useState('');
@@ -53,6 +52,12 @@ export default function ReportDetailsScreen() {
               <Text style={styles.label}>Location</Text><Text style={styles.value}>{locationLabel(report)}</Text>
               <Text style={styles.label}>Submitted</Text><Text style={styles.value}>{formatDate(report.createdAt)}</Text>
               <Text style={styles.label}>Verification status</Text><ReportStatusBadge status={report.status} />
+              {report.remarks ? (
+                <>
+                  <Text style={styles.label}>{report.status === 'Rejected' ? 'Rejection reason' : 'Officer remarks'}</Text>
+                  <Text style={styles.value}>{report.remarks}</Text>
+                </>
+              ) : null}
             </Card>
             <Card style={styles.photoCard}>
               <Text style={styles.label}>Photo evidence</Text>
