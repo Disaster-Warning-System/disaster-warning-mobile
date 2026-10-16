@@ -13,6 +13,7 @@ export type Shelter = {
   occupancy: number;
   operationalStatus: ShelterOperationalStatus;
   remarks: string;
+  imageId?: string | null;
   availableSpaces: number;
   availabilityStatus: ShelterOperationalStatus | 'Full';
   createdAt: string;

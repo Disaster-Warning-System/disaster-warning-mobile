@@ -1,10 +1,13 @@
 export class ApiRequestError extends Error {
+  public readonly status: number | null;
+
   constructor(
     message: string,
-    public readonly status: number | null = null,
+    status: number | null = null,
   ) {
     super(message);
     this.name = 'ApiRequestError';
+    this.status = status;
   }
 }
 

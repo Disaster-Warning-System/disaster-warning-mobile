@@ -4,9 +4,11 @@ import type { Shelter } from '@/types/shelter';
 export default function ShelterCard({
   shelter,
   onPress,
+  distanceKm,
 }: {
   shelter: Shelter;
   onPress: () => void;
+  distanceKm?: number;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
@@ -14,6 +16,9 @@ export default function ShelterCard({
         <View style={styles.flex}>
           <Text style={styles.name}>{shelter.name}</Text>
           <Text style={styles.location}>{shelter.location}</Text>
+          {distanceKm !== undefined ? (
+            <Text style={styles.distance}>{formatDistance(distanceKm)} away</Text>
+          ) : null}
         </View>
         <ShelterStatusBadge shelter={shelter} />
       </View>
@@ -31,6 +36,13 @@ export default function ShelterCard({
     </Pressable>
   );
 }
+
+function formatDistance(distanceKm: number): string {
+  return distanceKm < 1
+    ? `${Math.round(distanceKm * 1000)} m`
+    : `${distanceKm.toFixed(1)} km`;
+}
+
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
@@ -49,6 +61,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   name: { color: '#183447', fontSize: 16, fontWeight: '700' },
   location: { color: '#71818b', fontSize: 13, marginTop: 4 },
+  distance: { color: '#1877B9', fontSize: 12, fontWeight: '700', marginTop: 5 },
   metrics: {
     flexDirection: 'row',
     justifyContent: 'space-between',

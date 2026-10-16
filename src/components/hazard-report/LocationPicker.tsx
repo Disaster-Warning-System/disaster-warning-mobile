@@ -30,7 +30,7 @@ export default function LocationPicker({
     setManualMode(false);
     try {
       const current = await getCurrentLocation();
-      onLocationChange(current);
+      onLocationChange({ ...current, district: location.district });
       setLocationMessage('');
     } catch (error) {
       setManualMode(true);
@@ -47,7 +47,7 @@ export default function LocationPicker({
   const handleManualLocation = () => {
     setManualMode(true);
     setLocationMessage('');
-    onLocationChange({ latitude: null, longitude: null, address: location.address });
+    onLocationChange({ ...location, latitude: null, longitude: null, address: location.address });
   };
 
   return (
@@ -98,7 +98,7 @@ export default function LocationPicker({
           accessibilityLabel="Manual location"
           onChangeText={(address) => {
             setLocationMessage('');
-            onLocationChange({ latitude: null, longitude: null, address });
+            onLocationChange({ ...location, latitude: null, longitude: null, address });
           }}
           placeholder="Enter your location"
           placeholderTextColor="#87958F"
@@ -106,6 +106,14 @@ export default function LocationPicker({
           style={styles.input}
         />
       ) : null}
+      <TextInput
+        accessibilityLabel="District"
+        onChangeText={(district) => onLocationChange({ ...location, district })}
+        placeholder="Enter your district"
+        placeholderTextColor="#87958F"
+        value={location.district}
+        style={styles.input}
+      />
     </View>
   );
 }
