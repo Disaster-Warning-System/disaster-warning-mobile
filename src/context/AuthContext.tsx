@@ -2,7 +2,8 @@ import * as SecureStore from 'expo-secure-store';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
-import { login as loginRequest, register as registerRequest } from '@/services/api/authApi';
+import { login as loginRequest, register as registerRequest, updateProfile as updateProfileRequest } from '@/services/api/authApi';
+import { syncPushToken, unregisterPushToken } from '@/services/notification/notificationService';
 import type { AuthResponse, LoginInput, RegisterInput, User } from '@/types/user';
 
 const AUTH_KEY = 'disaster-warning-auth';
@@ -13,6 +14,7 @@ type AuthContextValue = {
   isLoading: boolean;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
+  updateProfile: (input: Pick<RegisterInput, 'district' | 'riverBasins' | 'phoneNumber'>) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -61,6 +63,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (auth?.token && (auth.user.role === 'Citizen' || auth.user.role === 'Volunteer')) {
+      void syncPushToken(auth.token).catch(() => {
+        // Feed polling remains available when push permission or registration is unavailable.
+      });
+    }
+  }, [auth?.token, auth?.user.role]);
+
   const saveAuth = async (nextAuth: AuthResponse) => {
     await setStoredValue(JSON.stringify(nextAuth));
     setAuth(nextAuth);
@@ -73,7 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login: async (input) => saveAuth(await loginRequest(input)),
       register: async (input) => saveAuth(await registerRequest(input)),
+      updateProfile: async (input) => {
+        if (!auth?.token) throw new Error('Sign in to update your profile.');
+        const user = await updateProfileRequest(auth.token, input);
+        await saveAuth({ ...auth, user });
+      },
       logout: async () => {
+        if (auth?.token) {
+          try { await unregisterPushToken(auth.token); } catch { /* Keep sign-out available offline. */ }
+        }
         await clearStoredValue();
         setAuth(null);
       },

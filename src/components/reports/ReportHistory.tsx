@@ -46,7 +46,8 @@ export default function ReportHistory({ onSubmitNew }: { onSubmitNew: () => void
   }, [token]);
 
   useEffect(() => {
-    void loadReports();
+    const initialLoad = setTimeout(() => void loadReports(), 0);
+    return () => clearTimeout(initialLoad);
   }, [loadReports]);
 
   return (

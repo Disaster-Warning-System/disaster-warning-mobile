@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,22 +8,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getApiUrl } from '@/services/api/apiClient';
+import { getCitizenAlertFeed, type CitizenAlert } from '@/services/api/alertApi';
+import { useAuth } from '@/context/AuthContext';
 
 type Severity = 'Advisory' | 'Watch' | 'Warning' | 'Evacuation Order';
-
-type Alert = {
-  _id?: string;
-  alertId: string;
-  severity: Severity;
-  headline: string;
-  instruction: string;
-  issuedAt?: string;
-  createdAt?: string;
-};
-
-const ALERTS_URL = getApiUrl('/api/alerts');
-const POLL_INTERVAL_MS = 5000;
+type Alert = CitizenAlert & { severity: Severity };
+const POLL_INTERVAL_MS = 30000;
 
 const severityColors: Record<Severity, string> = {
   Advisory: '#2563eb',
@@ -44,15 +33,20 @@ function formatAlertTime(alert: Alert): string {
 }
 
 export default function AlertsScreen() {
+  const { token } = useAuth();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAlerts = useCallback(async () => {
+    if (!token) {
+      setAlerts([]);
+      setLoading(false);
+      return;
+    }
     try {
-      const response = await axios.get<Alert[]>(ALERTS_URL);
-      setAlerts(Array.isArray(response.data) ? response.data : []);
+      setAlerts(await getCitizenAlertFeed(token));
       setError(null);
     } catch {
       setError('Alerts are unavailable. We will retry automatically.');
@@ -60,7 +54,7 @@ export default function AlertsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     const initialFetch = setTimeout(() => {
@@ -85,7 +79,7 @@ export default function AlertsScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>Hazard Alerts</Text>
-        <Text style={styles.subtitle}>Live updates every 5 seconds</Text>
+        <Text style={styles.subtitle}>Live updates every 30 seconds</Text>
 
         {loading ? <ActivityIndicator size="large" color="#2563eb" /> : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -122,7 +116,7 @@ export default function AlertsScreen() {
               </Text>
               <Text style={styles.time}>{formatAlertTime(item)}</Text>
               <Text style={styles.headline}>{item.headline}</Text>
-              <Text style={styles.instruction}>{item.instruction}</Text>
+              <Text style={styles.instruction}>{item.instructions || item.instruction}</Text>
             </View>
           )}
         />

@@ -4,6 +4,8 @@ export type User = {
   email: string;
   role: string;
   district: string;
+  riverBasins?: string[];
+  phoneNumber?: string;
 };
 
 export type AuthResponse = {
@@ -19,4 +21,7 @@ export type LoginInput = {
 export type RegisterInput = LoginInput & {
   name: string;
   district?: string;
+  riverBasins?: string[];
+  phoneNumber?: string;
+  role?: 'Citizen' | 'Volunteer';
 };

@@ -31,7 +31,17 @@ Hazard reports waiting for connectivity on Android and iOS are stored in a SQLCi
 
 Photos are selected with the camera or gallery and remain local until a report can be sent. When online, the app uploads the photo as multipart form data to `POST /api/uploads/hazard-photo`, then submits the returned `photoFileId` with the report. Offline reports retain their local image URI and perform those steps when connectivity returns; a queued report is removed only after report creation succeeds. The backend stores photos in MongoDB GridFS (not Base64 or cloud storage). JPEG, PNG, and WebP are accepted up to 5 MB.
 
+## Account registration
+
+Choose **Create one** on the sign-in screen to register a Citizen or Volunteer account. Successful registration calls `POST /api/auth/register`, stores the returned JWT in platform-appropriate storage, and signs the user in. Use the backend URL in `EXPO_PUBLIC_API_URL`; on a physical device, use the computer's LAN IP instead of `localhost`. Officer accounts are provisioned separately and cannot be created through public registration.
+
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Hazard alert delivery
+
+Citizen and Volunteer registration collects a district, optional supported river-basin subscriptions, and an optional E.164 phone number. Existing accounts can update these values in **Profile → Alert delivery settings**. The Alerts tab calls the authenticated `GET /api/alerts/feed` endpoint and refreshes periodically; matching push notifications are registered after sign-in when an EAS project is configured.
+
+For remote push, configure `EXPO_PUBLIC_EAS_PROJECT_ID` and build/run a development or production app. The installed Expo Notifications plugin requests native configuration at build time. Expo Go on Android does not support remote push notifications on this SDK, so use a development build to verify actual device delivery. Set the backend's Twilio credentials separately for SMS; never put provider secrets in the mobile app or its `EXPO_PUBLIC_*` variables.
 
 ## Get a fresh project
 
