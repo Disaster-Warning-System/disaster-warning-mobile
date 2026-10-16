@@ -63,7 +63,7 @@ type HazardReportContextValue = {
 const HazardReportContext = createContext<HazardReportContextValue | null>(null);
 
 export function HazardReportProvider({ children }: PropsWithChildren) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [form, setForm] = useState<HazardReportForm>(EMPTY_FORM);
   const [validationErrors, setValidationErrors] = useState<HazardReportErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,7 +135,10 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
         createdAt: new Date().toISOString(),
         idempotencyKey: localId,
       };
-      await savePendingReport(pendingReport);
+      if (!user) {
+        throw new Error('Cannot save a report without an authenticated user.');
+      }
+      await savePendingReport(pendingReport, { userId: user._id });
       const result: SubmissionResult = {
         kind: 'pending-sync',
         localId,
@@ -144,7 +147,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       setSubmitSuccess(result);
       return result;
     },
-    [form],
+    [form, user],
   );
 
   const submitReport = useCallback(async () => {
@@ -291,6 +294,7 @@ export function HazardReportProvider({ children }: PropsWithChildren) {
       setHazardType,
       setDescription,
       setLocation,
+      setSeverity,
       setPhotoUri,
       validateReport,
       submitReport,

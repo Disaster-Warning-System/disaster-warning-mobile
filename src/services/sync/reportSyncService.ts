@@ -25,6 +25,7 @@ let activeSync: Promise<SyncSummary> | null = null;
 type SyncOptions = {
   onStatusChange?: (localId: string, status: 'Syncing') => void;
   token?: string | null;
+  userId?: string | null;
 };
 
 async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
@@ -33,7 +34,11 @@ async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
     return { synced: 0, remaining: 0, syncedReports: [], failedReports: [] };
   }
 
-  const pendingReports = (await getPendingReports()).filter(
+  if (!options.userId) {
+    return { synced: 0, remaining: 0, syncedReports: [], failedReports: [] };
+  }
+  const owner = { userId: options.userId };
+  const pendingReports = (await getPendingReports(owner)).filter(
     (pending) =>
       pending.syncStatus === 'Pending Synchronization' ||
       pending.syncStatus === 'Sync Failed',
@@ -48,7 +53,7 @@ async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
       break;
     }
 
-    await updatePendingReport(pending.localId, {
+    await updatePendingReport(pending.localId, owner, {
       localStatus: 'Syncing',
       syncStatus: 'Syncing',
     });
@@ -80,15 +85,15 @@ async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
         }
         throw error;
       }
-      await updatePendingReport(pending.localId, {
+      await updatePendingReport(pending.localId, owner, {
         localStatus: 'Synced',
         syncStatus: 'Synced',
       });
-      await removePendingReport(pending.localId);
+      await removePendingReport(pending.localId, owner);
       synced += 1;
       syncedReports.push({ localId: pending.localId, report });
     } catch (error) {
-      await updatePendingReport(pending.localId, {
+      await updatePendingReport(pending.localId, owner, {
         localStatus: 'Sync Failed',
         syncStatus: 'Sync Failed',
       });
@@ -97,7 +102,7 @@ async function performSync(options: SyncOptions = {}): Promise<SyncSummary> {
     }
   }
 
-  const remaining = (await getPendingReports()).length;
+  const remaining = (await getPendingReports(owner)).length;
   return { synced, remaining, syncedReports, failedReports };
 }
 

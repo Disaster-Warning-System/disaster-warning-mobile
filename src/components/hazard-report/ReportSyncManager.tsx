@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export function ReportSyncManager() {
   const { isConnected } = useNetworkStatus();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { markReportSyncing, markReportSynced, markReportSyncFailed } = useHazardReport();
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export function ReportSyncManager() {
       return;
     }
 
-    syncPendingReports({ onStatusChange: markReportSyncing, token })
+    syncPendingReports({ onStatusChange: markReportSyncing, token, userId: user?._id })
       .then(({ syncedReports, failedReports }) => {
         for (const { localId, report } of syncedReports) {
           markReportSynced(localId, report);
@@ -27,7 +27,7 @@ export function ReportSyncManager() {
       .catch((error: unknown) => {
         console.error('Automatic hazard report sync could not be completed.', error);
       });
-  }, [isConnected, markReportSyncFailed, markReportSynced, markReportSyncing, token]);
+  }, [isConnected, markReportSyncFailed, markReportSynced, markReportSyncing, token, user?._id]);
 
   return null;
 }

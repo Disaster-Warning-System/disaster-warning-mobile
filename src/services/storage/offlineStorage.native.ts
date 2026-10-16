@@ -13,6 +13,10 @@ type PendingReportRow = {
   payload: string;
 };
 
+type StorageOwner = {
+  userId: string;
+};
+
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazardReport {
@@ -80,10 +84,17 @@ async function openEncryptedDatabase(): Promise<SQLite.SQLiteDatabase> {
     await database.execAsync(`
       CREATE TABLE IF NOT EXISTS pending_hazard_reports (
         local_id TEXT PRIMARY KEY NOT NULL,
+        owner_id TEXT,
         payload TEXT NOT NULL,
         created_at TEXT NOT NULL
       );
     `);
+    const columns = await database.getAllAsync<{ name: string }>(
+      'PRAGMA table_info(pending_hazard_reports);',
+    );
+    if (!columns.some((column) => column.name === 'owner_id')) {
+      await database.execAsync('ALTER TABLE pending_hazard_reports ADD COLUMN owner_id TEXT;');
+    }
     return database;
   } catch (error) {
     await database.closeAsync();
@@ -101,21 +112,26 @@ async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   return databasePromise;
 }
 
-export async function savePendingReport(report: LocalPendingHazardReport): Promise<void> {
+export async function savePendingReport(
+  report: LocalPendingHazardReport,
+  owner: StorageOwner,
+): Promise<void> {
   const database = await getDatabase();
   await database.runAsync(
-    `INSERT OR IGNORE INTO pending_hazard_reports (local_id, payload, created_at)
-     VALUES (?, ?, ?)`,
+    `INSERT OR IGNORE INTO pending_hazard_reports (local_id, owner_id, payload, created_at)
+     VALUES (?, ?, ?, ?)`,
     report.localId,
+    owner.userId,
     JSON.stringify(report),
     report.createdAt,
   );
 }
 
-export async function getPendingReports(): Promise<LocalPendingHazardReport[]> {
+export async function getPendingReports(owner: StorageOwner): Promise<LocalPendingHazardReport[]> {
   const database = await getDatabase();
   const rows = await database.getAllAsync<PendingReportRow>(
-    'SELECT payload FROM pending_hazard_reports ORDER BY created_at ASC',
+    'SELECT payload FROM pending_hazard_reports WHERE owner_id = ? ORDER BY created_at ASC',
+    owner.userId,
   );
 
   return rows.map(({ payload }) => {
@@ -129,12 +145,14 @@ export async function getPendingReports(): Promise<LocalPendingHazardReport[]> {
 
 export async function updatePendingReport(
   localId: string,
+  owner: StorageOwner,
   update: Pick<LocalPendingHazardReport, 'localStatus' | 'syncStatus'>,
 ): Promise<void> {
   const database = await getDatabase();
   const current = await database.getFirstAsync<PendingReportRow>(
-    'SELECT payload FROM pending_hazard_reports WHERE local_id = ?',
+    'SELECT payload FROM pending_hazard_reports WHERE local_id = ? AND owner_id = ?',
     localId,
+    owner.userId,
   );
   if (!current) {
     return;
@@ -142,16 +160,18 @@ export async function updatePendingReport(
   const report = migrateReport(JSON.parse(current.payload) as LocalPendingHazardReport);
   const updated = { ...report, ...update };
   await database.runAsync(
-    'UPDATE pending_hazard_reports SET payload = ? WHERE local_id = ?',
+    'UPDATE pending_hazard_reports SET payload = ? WHERE local_id = ? AND owner_id = ?',
     JSON.stringify(updated),
     localId,
+    owner.userId,
   );
 }
 
-export async function removePendingReport(localId: string): Promise<void> {
+export async function removePendingReport(localId: string, owner: StorageOwner): Promise<void> {
   const database = await getDatabase();
   await database.runAsync(
-    'DELETE FROM pending_hazard_reports WHERE local_id = ?',
+    'DELETE FROM pending_hazard_reports WHERE local_id = ? AND owner_id = ?',
     localId,
+    owner.userId,
   );
 }

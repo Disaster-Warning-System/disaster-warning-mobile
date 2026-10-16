@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import Card from '@/components/common/Card';
 import { AppColors, Typography } from '@/constants/theme';
 import { getPendingReports } from '@/services/storage/offlineStorage';
+import { useAuth } from '@/context/AuthContext';
 import type { LocalPendingHazardReport } from '@/types/hazardReport';
 
 const STATUS_LABELS = {
@@ -16,14 +17,19 @@ const STATUS_LABELS = {
 
 export default function PendingReportsStatus() {
   const [reports, setReports] = useState<LocalPendingHazardReport[]>([]);
+  const { user } = useAuth();
 
   const loadReports = useCallback(() => {
-    void getPendingReports()
+    if (!user) {
+      setReports([]);
+      return;
+    }
+    void getPendingReports({ userId: user._id })
       .then(setReports)
       .catch((error: unknown) => {
         console.error('Could not load saved hazard report statuses.', error);
       });
-  }, []);
+  }, [user]);
 
   useFocusEffect(loadReports);
 

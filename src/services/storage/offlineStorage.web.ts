@@ -1,7 +1,7 @@
 import { HAZARD_TYPES } from '@/constants/hazardTypes';
 import type { LocalPendingHazardReport, ReportSyncStatus } from '@/types/hazardReport';
 
-const STORAGE_KEY = 'disaster-warning-pending-hazard-reports';
+const STORAGE_KEY_PREFIX = 'disaster-warning-pending-hazard-reports';
 const HAZARD_TYPE_SET: ReadonlySet<string> = new Set(HAZARD_TYPES);
 
 function isLocalPendingHazardReport(value: unknown): value is LocalPendingHazardReport {
@@ -48,12 +48,16 @@ function migrateReport(report: LocalPendingHazardReport): LocalPendingHazardRepo
   };
 }
 
-function readReports(): LocalPendingHazardReport[] {
+function storageKey(owner: { userId: string }): string {
+  return `${STORAGE_KEY_PREFIX}:${owner.userId}`;
+}
+
+function readReports(owner: { userId: string }): LocalPendingHazardReport[] {
   if (typeof globalThis.localStorage === 'undefined') {
     return [];
   }
 
-  const stored = globalThis.localStorage.getItem(STORAGE_KEY);
+  const stored = globalThis.localStorage.getItem(storageKey(owner));
   if (!stored) {
     return [];
   }
@@ -65,34 +69,36 @@ function readReports(): LocalPendingHazardReport[] {
   return parsed.map(migrateReport);
 }
 
-function writeReports(reports: LocalPendingHazardReport[]): void {
+function writeReports(owner: { userId: string }, reports: LocalPendingHazardReport[]): void {
   if (typeof globalThis.localStorage === 'undefined') {
     throw new Error('Browser local storage is unavailable.');
   }
-  globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+  globalThis.localStorage.setItem(storageKey(owner), JSON.stringify(reports));
 }
 
-export async function savePendingReport(report: LocalPendingHazardReport): Promise<void> {
-  const reports = readReports();
+export async function savePendingReport(report: LocalPendingHazardReport, owner: { userId: string }): Promise<void> {
+  const reports = readReports(owner);
   if (!reports.some((pending) => pending.localId === report.localId)) {
-    writeReports([...reports, report]);
+    writeReports(owner, [...reports, report]);
   }
 }
 
-export async function getPendingReports(): Promise<LocalPendingHazardReport[]> {
-  return readReports();
+export async function getPendingReports(owner: { userId: string }): Promise<LocalPendingHazardReport[]> {
+  return readReports(owner);
 }
 
-export async function removePendingReport(localId: string): Promise<void> {
-  writeReports(readReports().filter((report) => report.localId !== localId));
+export async function removePendingReport(localId: string, owner: { userId: string }): Promise<void> {
+  writeReports(owner, readReports(owner).filter((report) => report.localId !== localId));
 }
 
 export async function updatePendingReport(
   localId: string,
+  owner: { userId: string },
   update: Pick<LocalPendingHazardReport, 'localStatus' | 'syncStatus'>,
 ): Promise<void> {
   writeReports(
-    readReports().map((report) =>
+    owner,
+    readReports(owner).map((report) =>
       report.localId === localId ? { ...report, ...update } : report,
     ),
   );
